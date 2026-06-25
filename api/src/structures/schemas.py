@@ -71,6 +71,26 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Replaces the remaining symbols after normalization with their words",
     )
+    html_normalization: bool = Field(
+        default=True,
+        description="Removes html tags from the input text so they don't get pronounced by kokoro",
+    )
+    comma_pacing_normalization: bool = Field(
+        default=True,
+        description="Replaces commas with ';-' to improve pacing of runon sentences.",
+    )
+    month_abbreviation_normalization: bool = Field(
+        default=True,
+        description="Replaces month abbreviations with their full names to improve pronunciation.",
+    )
+    pronunciation_normalization: bool = Field(
+        default=False,
+        description="Replaces a preset dictionary of words with their International Phonetic Alphabet spellings to override the default pronunciation.",
+    )
+    pronunciation_dictionary: Optional[dict] = Field(
+        default=None,
+        description="A custom dictionary of words and their International Phonetic Alphabet spellings to override or extend the default pronunciation dictionary.",
+    )
 
 
 class OpenAISpeechRequest(BaseModel):
