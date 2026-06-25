@@ -875,9 +875,6 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
     if normalization_options.html_normalization:
         text = handle_html_tags_and_content(text)
 
-    if normalization_options.comma_pacing_normalization:
-        text = handle_comma_pacing(text)
-
     if normalization_options.month_abbreviation_normalization:
         text = handle_month_abbreviations(text)
 
@@ -935,6 +932,9 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
     text = NUMBER_PATTERN.sub(handle_numbers, text)
 
     text = re.sub(r"\d*\.\d+", handle_decimal, text)
+
+    if normalization_options.comma_pacing_normalization:
+        text = handle_comma_pacing(text)
 
     # Handle other problematic symbols AFTER money/number processing
     if normalization_options.replace_remaining_symbols:

@@ -2,7 +2,13 @@
 
 import pytest
 
-from api.src.services.text_processing.normalizer import normalize_text
+from api.src.services.text_processing.normalizer import (
+    handle_comma_pacing,
+    handle_html_tags_and_content,
+    handle_month_abbreviations,
+    handle_pronunciations,
+    normalize_text,
+)
 from api.src.structures.schemas import NormalizationOptions
 
 
@@ -240,6 +246,100 @@ def test_time():
     )
 
 
+def test_handle_pronunciations_replaces_known_entry():
+    text = "We went to Boston."
+
+    result = handle_pronunciations(text)
+
+    assert result == "We went to [Boston](/'bɑs tən/)\n."
+
+
+def test_handle_pronunciations_supports_multiword_entries():
+    text = "We drove through North Andover and South Hadley."
+
+    result = handle_pronunciations(text)
+
+    assert "[North Andover](/,nɔrθ 'æn doʊ vər/)\n" in result
+    assert "[South Hadley](/s'aʊθ h'ædli/)\n" in result
+    assert result.startswith("We drove through ")
+    assert result.endswith(".")
+
+
+def test_handle_pronunciations_prefers_custom_dictionary_over_default():
+    text = "Fenway is famous."
+
+    result = handle_pronunciations(text, {"Fenway": "/custom/"})
+
+    assert result == "[Fenway](/custom/)\n is famous."
+
+
+def test_handle_pronunciations_leaves_unknown_text_unchanged():
+    text = "This place is not in the dictionary."
+
+    result = handle_pronunciations(text)
+
+    assert result == text
+
+
+def test_handle_pronunciations_handles_empty_ipa_value():
+    text = "Boston is here."
+
+    result = handle_pronunciations(text, {"Boston": ""})
+
+    assert result == "Boston is here."
+
+
+def test_handle_html_tags_and_content_removes_tags_only():
+    text = "<p>Hello <strong>world</strong></p>"
+
+    result = handle_html_tags_and_content(text)
+
+    assert result == "Hello world"
+
+
+def test_handle_html_tags_and_content_preserves_plain_text():
+    text = "Plain text with no markup."
+
+    result = handle_html_tags_and_content(text)
+
+    assert result == text
+
+
+def test_handle_comma_pacing_replaces_all_commas():
+    text = "One, two, three, four"
+
+    result = handle_comma_pacing(text)
+
+    assert result == "One;- two;- three;- four"
+
+
+def test_handle_comma_pacing_leaves_text_without_commas_unchanged():
+    text = "No punctuation here"
+
+    result = handle_comma_pacing(text)
+
+    assert result == text
+
+
+def test_handle_month_abbreviations_expands_all_supported_months():
+    text = "Jan. 1, Feb. 2, Mar. 3, Apr. 4, May. 5, Jun. 6, Jul. 7, Aug. 8, Sep. 9, Oct. 10, Nov. 11, Dec. 12"
+
+    result = handle_month_abbreviations(text)
+
+    assert result == (
+        "January 1, February 2, March 3, April 4, May 5, June 6, July 7, "
+        "August 8, September 9, October 10, November 11, December 12"
+    )
+
+
+def test_handle_month_abbreviations_leaves_non_supported_text_unchanged():
+    text = "Jan 1 and Sept. 2 should stay mostly the same."
+
+    result = handle_month_abbreviations(text)
+
+    assert result == text
+
+
 def test_number():
     """Test number normalization"""
 
@@ -263,7 +363,7 @@ def test_number():
             "There are 1300 products left in stock",
             normalization_options=NormalizationOptions(),
         )
-        == "There are one thousand, three hundred products left in stock"
+        == "There are one thousand;- three hundred products left in stock"
     )
 
     assert (
@@ -271,7 +371,7 @@ def test_number():
             "The population is 7,890,000 people.",
             normalization_options=NormalizationOptions(),
         )
-        == "The population is seven million, eight hundred and ninety thousand people."
+        == "The population is seven million;- eight hundred and ninety thousand people."
     )
 
     assert (
@@ -317,7 +417,7 @@ def test_non_url_text():
         normalize_text(
             "Hello, how are you today?", normalization_options=NormalizationOptions()
         )
-        == "Hello, how are you today?"
+        == "Hello;- how are you today?"
     )
     assert (
         normalize_text("It costs $50.", normalization_options=NormalizationOptions())
