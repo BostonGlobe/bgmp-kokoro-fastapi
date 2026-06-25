@@ -635,22 +635,6 @@ def handle_month_abbreviations(text):
         text = text.replace(abbr, full)
     return text
 
-# Email address normalization --------------------------------------------------------------
-
-def handle_email_addresses(text):
-    # Normalize email addresses in the text
-    email_pattern = re.compile(
-        r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}\b", re.IGNORECASE
-    )
-    emails = email_pattern.findall(text)
-    emails = list(set(emails))  # Remove duplicates
-    for email in emails:
-        user, domain = email.split("@")
-        user = user.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ")
-        domain = domain.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ")
-        normalized_email = f"{user} at {domain}"
-        text = text.replace(email, normalized_email)
-    return text
 
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
