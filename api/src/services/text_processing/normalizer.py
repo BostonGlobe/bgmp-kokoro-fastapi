@@ -547,7 +547,7 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Roxbury": "/ɹ'ɑks bɛɹi/",
     "Allston": "/'ɔlstən/",
     "Brighton": "/b'ɹaɪtn/",
-    # "Celtics": "/s'ɛltɪks/",
+    "Celtics": "/s'ɛltɪks/",
     "Fenway": "/f'ɛnweɪ/"
 }
 
