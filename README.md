@@ -3,14 +3,9 @@
 </p>
 
 # <sub><sub>_`FastKoko`_ </sub></sub> 
-[![Changelog](https://img.shields.io/badge/changelog-white)](./CHANGELOG.md) [![Tests](https://img.shields.io/badge/tests-81-darkgreen)]()
-[![Coverage](https://img.shields.io/badge/coverage-52%25-tan)]()
 
 [![Kokoro](https://img.shields.io/badge/kokoro-0.9.4-BB5420)](https://github.com/hexgrad/kokoro)
 [![Misaki](https://img.shields.io/badge/misaki-0.9.4-B8860B)](https://github.com/hexgrad/misaki)
-[![Tested at Model Commit](https://img.shields.io/badge/model-1.0::9901c2b-blue)](https://huggingface.co/hexgrad/Kokoro-82M/commit/9901c2b79161b6e898b7ea857ae5298f47b8b0d6) 
-
-[![Try on Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Try%20on-Spaces-blue)](https://huggingface.co/spaces/Remsky/FastKoko) [![Downloads](https://img.shields.io/badge/downloads-1.4M%2B-2496ED?logo=docker&logoColor=white)](https://github.com/remsky?tab=packages&repo_name=Kokoro-FastAPI)
 
 
 
@@ -26,6 +21,11 @@ Dockerized FastAPI wrapper for [Kokoro-82M](https://huggingface.co/hexgrad/Kokor
 
 
 ### Integration Guides
+
+#### Internal
+[![BGMP Services](https://img.shields.io/badge/BGMP_Services-BB5420)](https://github.com/BostonGlobe/Kokoro-FastAPI-BGMP/tree/master/docs/integration/QUICKSTART.md)
+
+#### General
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/remsky/Kokoro-FastAPI) [![Ask CodeWiki](https://img.shields.io/badge/Ask%20CodeWiki-4285F4?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/remsky/kokoro-fastapi)
 
  [![Helm Chart](https://img.shields.io/badge/Helm%20Chart-black?style=flat&logo=helm&logoColor=white)](https://github.com/remsky/Kokoro-FastAPI/wiki/Setup-Kubernetes) [![DigitalOcean](https://img.shields.io/badge/DigitalOcean-black?style=flat&logo=digitalocean&logoColor=white)](https://github.com/remsky/Kokoro-FastAPI/wiki/Integrations-DigitalOcean) [![SillyTavern](https://img.shields.io/badge/SillyTavern-black?style=flat&color=red)](https://github.com/remsky/Kokoro-FastAPI/wiki/Integrations-SillyTavern)
@@ -750,12 +750,3 @@ The full Apache 2.0 license text can be found at: https://www.apache.org/license
 
 </details open>
 
-## Contributor Stats
-![Alt](https://repobeats.axiom.co/api/embed/f9694366bf96febc749d592316ff0a275fe77219.svg "Repobeats analytics image")
-</details>
-
-<a href="https://github.com/remsky/Kokoro-FastAPI/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=remsky/Kokoro-FastAPI" />
-</a>
-
-Made with [contrib.rocks](https://contrib.rocks).
