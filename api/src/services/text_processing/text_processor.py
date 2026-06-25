@@ -8,7 +8,7 @@ from loguru import logger
 
 from ...core.config import settings
 from ...structures.schemas import NormalizationOptions
-from .normalizer import normalize_text
+from .normalizer import normalize_text, handle_pronunciations
 from .phonemizer import phonemize
 from .vocabulary import tokenize
 
@@ -171,6 +171,11 @@ async def smart_split(
             processed_text = text_part_raw
             if settings.advanced_text_normalization and normalization_options.normalize:
                 if lang_code in ["a", "b", "en-us", "en-gb"]:
+                    if normalization_options.pronunciation_normalization:
+                        logger.debug(
+                            "Pronunciation normalization is enabled. Applying normalization."
+                        )
+                        processed_text = handle_pronunciations(processed_text, normalization_options.pronunciation_dictionary)
                     processed_text = CUSTOM_PHONEMES.split(processed_text)
                     for index in range(0, len(processed_text), 2):
                         processed_text[index] = normalize_text(

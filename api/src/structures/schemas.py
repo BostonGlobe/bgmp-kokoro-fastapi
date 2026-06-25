@@ -83,9 +83,13 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Replaces month abbreviations with their full names to improve pronunciation.",
     )
+    pronunciation_normalization: bool = Field(
+        default=False,
+        description="Replaces a preset dictionary of words with their International Phonetic Alphabet spellings to override the default pronunciation.",
+    )
     pronunciation_dictionary: Optional[dict] = Field(
         default=None,
-        description="A dictionary of words and their International Phonetic Alphabet spellings to override the default pronunciation.",
+        description="A custom dictionary of words and their International Phonetic Alphabet spellings to override or extend the default pronunciation dictionary.",
     )
 
 

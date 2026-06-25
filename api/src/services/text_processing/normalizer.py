@@ -188,8 +188,469 @@ NUMBER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+DEFAULT_PRONUNCIATION_DICTIONARY = {
+    "Abington": "/'æb ɪŋ tən/",
+    "Acton": "/'æktən/",
+    "Acushnet": "/ək'ʊʃnɪt/",
+    "Adams": "/'ædəmz/",
+    "Agawam": "/'æɡəw,æm/",
+    "Alford": "/əlf'ɔɹd/",
+    "Amesbury": "/'eɪmz bɛr i/",
+    "Amherst": "/'æmhəɹst/",
+    "Andover": "/'ændoʊvəɹ/",
+    "Arlington": "/'ɑɹlɪŋtən/",
+    "Ashburnham": "/'æʃbəɹn,æm/",
+    "Ashby": "/'æʃbi/",
+    "Ashfield": "/'æʃfild/",
+    "Ashland": "/'æʃlənd/",
+    "Athol": "/'æθ ɔl/",
+    "Attleboro": "/'ætəlbəɹə/",
+    "Auburn": "/'ɔbəɹn/",
+    "Avon": "/'eɪ vən/",
+    "Ayer": "/'eɪ ər/",
+    "Barnstable": "/'bɑrn stə bəl/",
+    "Barre": "/'bær i/",
+    "Becket": "/b'ɛkət/",
+    "Bedford": "/b'ɛdfəɹd/",
+    "Belchertown": "/b'ɛlʧəɹt,aʊn/",
+    "Bellingham": "/b'ɛlɪŋh,æm/",
+    "Belmont": "/b'ɛlmɑnt/",
+    "Berkley": "/b'ɜɹkli/",
+    "Berlin": "/bəɹl'ɪn/",
+    "Bernardston": "/b'ɜɹnəɹdstən/",
+    "Beverly": "/'bɛv ər li/",
+    "Billerica": "/bɪl'ɹɪkə/",
+    "Blackstone": "/bl'ækstoʊn/",
+    "Blandford": "/bl'ændfəɹd/",
+    "Bolton": "/'boʊl tən/",
+    "Boston": "/'bɑs tən/",
+    "Bourne": "/bɔrn/",
+    "Boxborough": "/b'ɑksbəɹ,oʊ/",
+    "Boxford": "/b'ɑksfəɹd/",
+    "Boylston": "/b'ɔɪlstən/",
+    "Braintree": "/bɹ'eɪntɹi/",
+    "Brewster": "/bɹ'ustəɹ/",
+    "Bridgewater": "/bɹ'ɪʤwɔtəɹ/",
+    "Brimfield": "/bɹ'ɪmfild/",
+    "Brockton": "/'bɹɑk tən/",
+    "Brookfield": "/bɹ'ʊkfild/",
+    "Brookline": "/'brʊk laɪn/",
+    "Buckland": "/b'ʌklənd/",
+    "Burlington": "/b'ɜɹlɪŋtən/",
+    "Cambridge": "/'keɪm bɹɪd͡ʒ/",
+    "Canton": "/k,ænt'ɑn/",
+    "Carlisle": "/k'ɑɹl,aɪl/",
+    "Carver": "/k'ɑɹvəɹ/",
+    "Charlemont": "/ʧ'ɑɹlɪm,ɔnt/",
+    "Charlton": "/ʧ'ɑɹltən/",
+    "Chatham": "/'tʃæ θəm/",
+    "Chelmsford": "/ʧ'ɛlmsfəɹd/",
+    "Chelsea": "/ʧ'ɛlsi/",
+    "Cheshire": "/ʧ'ɛʃəɹ/",
+    "Chester": "/ʧ'ɛstəɹ/",
+    "Chesterfield": "/ʧ'ɛstəɹf,ild/",
+    "Chicopee": "/'tʃɪk ə pi/",
+    "Chilmark": "/ʧ'ɪlmɑɹk/",
+    "Clarksburg": "/kl'ɑɹksbɜɹɡ/",
+    "Clinton": "/kl'ɪntən/",
+    "Cohasset": "/koʊ'hæs ɪt/",
+    "Colrain": "/k'ɑlɹeɪn/",
+    "Concord": "/'kɑŋ kərd/",
+    "Conway": "/k'ɑnweɪ/",
+    "Cummington": "/k'ʌmɪŋtən/",
+    "Dalton": "/d'ɔltən/",
+    "Danvers": "/d'ænvəɹz/",
+    "Dartmouth": "/d'ɑɹtməθ/",
+    "Dedham": "/'dɛd əm/",
+    "Deerfield": "/d'ɪɹfild/",
+    "Dennis": "/d'ɛnɪs/",
+    "Dighton": "/d'aɪtən/",
+    "Douglas": "/d'ʌɡləz/",
+    "Dover": "/'doʊ vər/",
+    "Dracut": "/'dreɪ kət/",
+    "Dudley": "/d'ʌdli/",
+    "Dunstable": "/d'ʌnstəbəl/",
+    "Duxbury": "/'dʌks bɛr i/",
+    "East Bridgewater": "/'ist bɹ'ɪʤwɔtəɹ/",
+    "East Brookfield": "/'ist bɹ'ʊkfild/",
+    "East Longmeadow": "/'ist l'ɔŋmɪd,oʊ/",
+    "Eastham": "/'iːst hæm/",
+    "Easthampton": "/,iːst'hæmp tən/",
+    "Easton": "/'istən/",
+    "Edgartown": "/'ɛdɡəɹt,aʊn/",
+    "Egremont": "/'ɛɡɹɪm,ɔnt/",
+    "Erving": "/'ɜɹvɪŋ/",
+    "Essex": "/'ɛsəks/",
+    "Everett": "/'ɛv ər ɪt/",
+    "Fairhaven": "/f'ɛɹheɪvən/",
+    "Fall River": "/f'ɔl ɹ'ɪvəɹ/",
+    "Falmouth": "/f'ælməθ/",
+    "Fitchburg": "/f'ɪʧb,ɜɹɡ/",
+    "Florida": "/fl'ɔɹədə/",
+    "Foxborough": "/'fɑks bə roʊ/",
+    "Framingham": "/'freɪm ɪŋ hæm/",
+    "Franklin": "/fɹ'æŋklən/",
+    "Freetown": "/fɹ'it,aʊn/",
+    "Gardner": "/ɡ'ɑɹdnəɹ/",
+    "Aquinnah": "/'ækwɪnə/",
+    "Georgetown": "/ʤ'ɔɹʤt,aʊn/",
+    "Gill": "/ɡ'ɪl/",
+    "Gloucester": "/'ɡlɑs tər/",
+    "Goshen": "/ɡ'ɑʃən/",
+    "Gosnold": "/ɡ'ɑsnoʊld/",
+    "Grafton": "/ɡɹ'æftən/",
+    "Granby": "/ɡɹ'ænbi/",
+    "Granville": "/ɡɹ'ænvɪl/",
+    "Great Barrington": "/ɡɹ'eɪt b'æɹɪŋtən/",
+    "Greenfield": "/ɡɹ'inf,ild/",
+    "Groton": "/ɡɹ'ɑtən/",
+    "Groveland": "/ɡɹ'ɑvɛlənd/",
+    "Hadley": "/h'ædli/",
+    "Halifax": "/h'æləf,æks/",
+    "Hamilton": "/h'æməltən/",
+    "Hampden": "/h'æmpdən/",
+    "Hancock": "/h'æŋkɑk/",
+    "Hanover": "/h'æn,oʊvəɹ/",
+    "Hanson": "/h'ænsən/",
+    "Hardwick": "/h'ɑɹdwɪk/",
+    "Harvard": "/h'ɑɹvəɹd/",
+    "Harwich": "/h'æɹɪʤ/",
+    "Hatfield": "/h'ætfild/",
+    "Haverhill": "/'heɪ vɹɪl/",
+    "Hawley": "/h'ɔli/",
+    "Heath": "/h'iθ/",
+    "Hingham": "/'hɪŋ əm/",
+    "Hinsdale": "/h'ɪnsdeɪl/",
+    "Holbrook": "/'hoʊl brʊk/",
+    "Holden": "/h'oʊldən/",
+    "Holland": "/h'ɑlənd/",
+    "Holliston": "/h'ɑlɪstən/",
+    "Holyoke": "/h'oʊlioʊk/",
+    "Hopedale": "/h'oʊpdeɪl/",
+    "Hopkinton": "/h'ɑpkɪntən/",
+    "Hubbardston": "/h'ʌbɑɹdstən/",
+    "Hudson": "/h'ʌdsən/",
+    "Hull": "/hʌl/",
+    "Huntington": "/h'ʌntɪŋtən/",
+    "Ipswich": "/'ɪpswəʧ/",
+    "Kingston": "/k'ɪŋstən/",
+    "Lakeville": "/l'eɪkvɪl/",
+    "Lancaster": "/l'æŋk,æstəɹ/",
+    "Lanesborough": "/l'eɪnsbəɹ,oʊ/",
+    "Lawrence": "/'lɔr əns/",
+    "Lee": "/l'i/",
+    "Leicester": "/'lɛs tər/",
+    "Lenox": "/l'ɛnəks/",
+    "Leominster": "/'lɛm ən stər/",
+    "Leverett": "/l'ɛvəɹɹɪt/",
+    "Lexington": "/l'ɛksɪŋtən/",
+    "Leyden": "/l'eɪdən/",
+    "Lincoln": "/l'ɪŋkən/",
+    "Littleton": "/l'ɪtəltən/",
+    "Longmeadow": "/l'ɔŋmɪd,oʊ/",
+    "Lowell": "/l'oʊəl/",
+    "Ludlow": "/l'ʌdloʊ/",
+    "Lunenburg": "/l'ʌnənb,ɜɹɡ/",
+    "Lynn": "/l'ɪn/",
+    "Lynnfield": "/l'ɪnfild/",
+    "Malden": "/m'ɔldən/",
+    "Manchester": "/m'ænʧəstəɹ/",
+    "Mansfield": "/m'ænsf,ild/",
+    "Marblehead": "/m'ɑɹbəlhɛd/",
+    "Marion": "/m'ɛɹiən/",
+    "Marlborough": "/'mɑrl bə roʊ/",
+    "Marshfield": "/m'ɑɹʃfild/",
+    "Mashpee": "/m'æʃpi/",
+    "Mattapoisett": "/mætə'pɔɪsɛt/",
+    "Maynard": "/'meɪ nərd/",
+    "Medfield": "/m'ɛdfild/",
+    "Medford": "/'mɛd fərd/",
+    "Medway": "/'mɛd weɪ/",
+    "Melrose": "/m'ɛlɹoʊz/",
+    "Mendon": "/m'ɛndən/",
+    "Merrimac": "/'mɛr ə mæk/",
+    "Methuen": "/mə'θuː ən/",
+    "Middleborough": "/'mɪd əl bə roʊ/",
+    "Middlefield": "/m'ɪdəlf,ild/",
+    "Middleton": "/m'ɪdəltən/",
+    "Milford": "/m'ɪlfəɹd/",
+    "Millbury": "/m'ɪlbɛɹi/",
+    "Millis": "/'mɪl ɪs/",
+    "Millville": "/m'ɪlvɪl/",
+    "Milton": "/m'ɪltən/",
+    "Monroe": "/mən'roʊ/",
+    "Monson": "/m'ɔnsən/",
+    "Montague": "/m'ɑntəɡj,u/",
+    "Monterey": "/m,ɑntəɹ'eɪ/",
+    "Montgomery": "/məntɡ'ʌməɹi/",
+    "Mount Washington": "/m'aʊnt w'ɔʃɪŋtən/",
+    "Nahant": "/nə'hɑnt/",
+    "Nantucket": "/næn'tʌk ɪt/",
+    "Natick": "/'neɪ tɪk/",
+    "Needham": "/'niː dəm/",
+    "New Ashford": "/njuː 'æʃ fərd/",
+    "New Bedford": "/njuː 'bɛd fərd/",
+    "New Braintree": "/njuː 'breɪn tri/",
+    "New Marlborough": "/njuː 'mɑrl bə roʊ/",
+    "New Salem": "/njuː 'seɪ ləm/",
+    "Newbury": "/'nuː bər i/",
+    "Newburyport": "/'nuː bər i pɔrt/",
+    "Newton": "/'nuː tən/",
+    "Norfolk": "/n'ɔɹfək/",
+    "North Adams": "/n'ɔɹθ 'ædəmz/",
+    "North Andover": "/,nɔrθ 'æn doʊ vər/",
+    "North Attleborough": "/,nɔrθ 'æt əl bər oʊ/",
+    "North Brookfield": "/n'ɔɹθ bɹ'ʊkfild/",
+    "North Reading": "/,nɔrθ 'rɛd ɪŋ/",
+    "Northampton": "/nɔɹθ'æmptən/",
+    "Northborough": "/'nɔrθ bə roʊ/",
+    "Northbridge": "/n'ɔɹθbɹɪʤ/",
+    "Northfield": "/n'ɔɹθfild/",
+    "Norton": "/n'ɔɹtən/",
+    "Norwell": "/'nɔr wɛl/",
+    "Norwood": "/n'ɔɹwʊd/",
+    "Oak Bluffs": "/'oʊk bl'ʌfs/",
+    "Oakham": "/'oʊkæm/",
+    "Orange": "/'ɔɹənʤ/",
+    "Orleans": "/ɔɹl'inz/",
+    "Otis": "/'oʊtɪs/",
+    "Oxford": "/'ɑksfəɹd/",
+    "Palmer": "/p'ɑlməɹ/",
+    "Paxton": "/p'ækstən/",
+    "Peabody": "/'piː bə di/",
+    "Pelham": "/p'ɛləm/",
+    "Pembroke": "/p'ɛmbɹoʊk/",
+    "Pepperell": "/p'ɛpəɹɹəl/",
+    "Peru": "/pəɹ'u/",
+    "Petersham": "/p'itəɹʃ,æm/",
+    "Phillipston": "/f'ɪlɪpstən/",
+    "Pittsfield": "/p'ɪtsfild/",
+    "Plainfield": "/pl'eɪnfild/",
+    "Plainville": "/pl'eɪnvɪl/",
+    "Plymouth": "/pl'ɪməθ/",
+    "Plympton": "/pl'ɪmptən/",
+    "Princeton": "/pɹ'ɪnstən/",
+    "Provincetown": "/'prɑv əns taʊn/",
+    "Quincy": "/'kwɪn zi/",
+    "Randolph": "/ɹ,ænd'ɔlf/",
+    "Raynham": "/ɹ'eɪnæm/",
+    "Reading": "/'rɛdɪŋ/",
+    "Rehoboth": "/rɪ'hoʊ bəθ/",
+    "Revere": "/ɹəv'ɪɹ/",
+    "Richmond": "/ɹ'ɪʧmənd/",
+    "Rochester": "/ɹ'ɑtʃ,ʌstəɹ/",
+    "Rockland": "/ɹ'ɑklənd/",
+    "Rockport": "/ɹ'ɑkpɔɹt/",
+    "Rowe": "/ɹ'oʊ/",
+    "Rowley": "/ɹ'oʊli/",
+    "Royalston": "/ɹ'ɔɪælstən/",
+    "Russell": "/ɹ'ʌsəl/",
+    "Rutland": "/ɹ'ʌtlənd/",
+    "Salem": "/s'eɪləm/",
+    "Salisbury": "/s'ɔlzb,ɛɹi/",
+    "Sandisfield": "/s'ændɪsf,ild/",
+    "Sandwich": "/s'ændw,ɪʧ/",
+    "Saugus": "/s'ɔɡəs/",
+    "Savoy": "/səv'ɔɪ/",
+    "Scituate": "/'sɪtʃ u ət/",
+    "Seekonk": "/'siː kɑŋk/",
+    "Sharon": "/ʃ'ɛɹən/",
+    "Sheffield": "/ʃ'ɛfild/",
+    "Shelburne": "/ʃ'ɛlbɜɹn/",
+    "Sherborn": "/ʃ'ɜɹbɔɹn/",
+    "Shirley": "/ʃ'ɜɹli/",
+    "Shrewsbury": "/'ʃruz bɛr i/",
+    "Shutesbury": "/ʃj'utsbɛɹi/",
+    "Somerset": "/s'ʌməs,ɛt/",
+    "Somerville": "/'sʌm ər vɪl/",
+    "South Hadley": "/s'aʊθ h'ædli/",
+    "Southampton": "/s,aʊθh'æmptən/",
+    "Southborough": "/s'aʊθbəɹ,oʊ/",
+    "Southbridge": "/s'aʊθbɹɪʤ/",
+    "Southwick": "/s'aʊθwɪk/",
+    "Spencer": "/sp'ɛnsəɹ/",
+    "Springfield": "/spɹ'ɪŋf,ild/",
+    "Sterling": "/st'ɜɹlɪŋ/",
+    "Stockbridge": "/st'ɑkbɹɪʤ/",
+    "Stoneham": "/st'oʊnhæm/",
+    "Stoughton": "/st'ɔtən/",
+    "Stow": "/st'oʊ/",
+    "Sturbridge": "/st'ɜɹbɹɪʤ/",
+    "Sudbury": "/s'ʌdbɛɹi/",
+    "Sunderland": "/s'ʌndəɹlənd/",
+    "Sutton": "/s'ʌtn/",
+    "Swampscott": "/sw'ɑmpskɑt/",
+    "Swansea": "/sw'ɑnzi/",
+    "Taunton": "/'tɔn tən/",
+    "Templeton": "/t'ɛmpəltən/",
+    "Tewksbury": "/'tʊks bɛr i/",
+    "Tisbury": "/'tɪz bɛr i/",
+    "Tolland": "/t'oʊlənd/",
+    "Topsfield": "/t'ɑpsfild/",
+    "Townsend": "/t'aʊnsɛnd/",
+    "Truro": "/tɹ'ʊɹ,oʊ/",
+    "Tyngsborough": "/'tɪŋz bə roʊ/",
+    "Tyringham": "/t'aɪɹɪŋ,æm/",
+    "Upton": "/'ʌptən/",
+    "Uxbridge": "/'ʌksbɹɪʤ/",
+    "Wakefield": "/'weɪk fiːld/",
+    "Wales": "/w'eɪlz/",
+    "Walpole": "/w'ɔlpoʊl/",
+    "Waltham": "/'wɔl θæm/",
+    "Ware": "/w'ɛɹ/",
+    "Wareham": "/'wɛr əm/",
+    "Warren": "/w'ɔɹən/",
+    "Warwick": "/w'ɔɹwɪk/",
+    "Washington": "/w'ɔʃɪŋtən/",
+    "Watertown": "/'wɔ tər taʊn/",
+    "Wayland": "/'weɪ lənd/",
+    "Webster": "/w'ɛbstəɹ/",
+    "Wellesley": "/w'ɛlzli/",
+    "Wellfleet": "/w'ɛlflit/",
+    "Wendell": "/w'ɛndɛl/",
+    "Wenham": "/w'ɛnæm/",
+    "West Boylston": "/w'ɛst b'ɔɪlstən/",
+    "West Bridgewater": "/w'ɛst bɹ'ɪʤwɔtəɹ/",
+    "West Brookfield": "/w'ɛst bɹ'ʊkfild/",
+    "West Newbury": "/w'ɛst n'ubɛɹi/",
+    "West Springfield": "/w'ɛst spɹ'ɪŋf,ild/",
+    "West Stockbridge": "/w'ɛst st'ɑkbɹɪʤ/",
+    "West Tisbury": "/w'ɛst t'ɪsbɛɹi/",
+    "Westborough": "/w'ɛstbəɹ,oʊ/",
+    "Westfield": "/'wɛst fiːld/",
+    "Westford": "/w'ɛstfəɹd/",
+    "Westhampton": "/wɛsθ'æmptən/",
+    "Westminster": "/w'ɛstm,ɪnstəɹ/",
+    "Weston": "/w'ɛstən/",
+    "Westport": "/w'ɛstpɔɹt/",
+    "Westwood": "/'wɛst wʊd/",
+    "Weymouth": "/'weɪ məθ/",
+    "Whately": "/w'ʌtli/",
+    "Whitman": "/w'ɪtmən/",
+    "Wilbraham": "/w'ɪlbɹəh,æm/",
+    "Williamsburg": "/w'ɪljəmzb,ɜɹɡ/",
+    "Williamstown": "/w'ɪljəmst,aʊn/",
+    "Wilmington": "/w'ɪlmɪŋtən/",
+    "Winchendon": "/w'ɪnʧɛndən/",
+    "Winchester": "/w'ɪnʧ,ɛstəɹ/",
+    "Windsor": "/w'ɪnzəɹ/",
+    "Winthrop": "/w'ɪnθɹɑp/",
+    "Woburn": "/'wuː bərn/",
+    "Worcester": "/'wɪstɚ/",
+    "Worthington": "/w'ɜɹðɪŋtən/",
+    "Wrentham": "/'rɛn θəm/",
+    "Yarmouth": "/'jɑr məθ/",
+    "Dorchester": "/dɔɹ'ʧɛstəɹ/",
+    "Hyde Park": "/h'aɪd pɑɹk/",
+    "Mattapan": "/m'ætəpæn/",
+    "Roslindale": "/ɹ'ɑzlɪn deɪl/",
+    "Roxbury": "/ɹ'ɑks bɛɹi/",
+    "Allston": "/'ɔlstən/",
+    "Brighton": "/b'ɹaɪtn/",
+    # "Celtics": "/s'ɛltɪks/",
+    "Fenway": "/f'ɛnweɪ/"
+}
+
 INFLECT_ENGINE = inflect.engine()
 
+# Pronunciation normalization --------------------------------------------------------------
+
+def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
+    """
+    Normalizes non-traditional names in the given text by converting them to their phonetic IPA representations.
+    
+    Args:
+        text (str): The input text containing non-traditional names.
+        pronunciation_dict (dict, optional): A dictionary of words and their International Phonetic Alphabet spellings.
+
+    Returns:
+        str: The text with non-traditional names normalized.
+    """
+    def preprocess_pronunciation(proper_noun: str, pn_to_ipa: dict):
+        """
+        Preprocesses the town name by converting it to the phonetic IPA representation.
+        
+        Args:
+            town_name (str): The name of the town to preprocess.
+        
+        Returns:
+            str: The preprocessed town name.
+        """
+        ipa = pn_to_ipa[proper_noun]
+        if not ipa:
+            return proper_noun  # Return the original proper noun if IPA is not available
+        return f"[{proper_noun}]({ipa})\n"
+    
+    pn_to_ipa = DEFAULT_PRONUNCIATION_DICTIONARY.copy()
+    if pronunciation_dict:
+        pn_to_ipa.update(pronunciation_dict)
+
+    # Match the exact known proper nouns, including multi-word and hyphenated names.
+    pn_pattern = re.compile(
+        r'\b(?:' + '|'.join(
+            sorted((re.escape(town.strip()) for town in pn_to_ipa.keys()), key=len, reverse=True)
+        ) + r')\b'
+    )
+
+    return pn_pattern.sub(
+        lambda match: preprocess_pronunciation(match.group(0), pn_to_ipa),
+        text,
+    )
+
+# Remove HTML tags and their content --------------------------------------------------------------
+
+def handle_html_tags_and_content(text):
+    # Remove HTML tags and their content
+    clean_text = re.sub(r'<.*?>', '', text)
+    return clean_text
+
+# Punctuation normalization --------------------------------------------------------------
+def handle_comma_pacing(text):
+    # Normalize punctuation in the text
+    def replace_commas_with_semicolon_hyphens(text):
+        # Replace commas with semicolons
+        return text.replace(',', ';-')
+    text = replace_commas_with_semicolon_hyphens(text)
+    return text
+
+# Date normalization --------------------------------------------------------------
+def handle_month_abbreviations(text):
+    # Normalize dates in the text
+    # Example: Convert "Jan. 23, 2025" to "January 23, 2025"
+    month_abbreviations = {
+        "Jan.": "January",
+        "Feb.": "February",
+        "Mar.": "March",
+        "Apr.": "April",
+        "May.": "May",
+        "Jun.": "June",
+        "Jul.": "July",
+        "Aug.": "August",
+        "Sep.": "September",
+        "Oct.": "October",
+        "Nov.": "November",
+        "Dec.": "December"
+    }
+    for abbr, full in month_abbreviations.items():
+        text = text.replace(abbr, full)
+    return text
+
+# Email address normalization --------------------------------------------------------------
+
+def handle_email_addresses(text):
+    # Normalize email addresses in the text
+    email_pattern = re.compile(
+        r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}\b", re.IGNORECASE
+    )
+    emails = email_pattern.findall(text)
+    emails = list(set(emails))  # Remove duplicates
+    for email in emails:
+        user, domain = email.split("@")
+        user = user.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ")
+        domain = domain.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ")
+        normalized_email = f"{user} at {domain}"
+        text = text.replace(email, normalized_email)
+    return text
 
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
@@ -306,6 +767,7 @@ def handle_email(m: re.Match[str]) -> str:
     parts = email.split("@")
     if len(parts) == 2:
         user, domain = parts
+        user = user.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ").strip()
         domain = domain.replace(".", " dot ")
         return f"{user} at {domain}"
     return email
@@ -425,6 +887,15 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
     # Replace optional pluralization
     if normalization_options.optional_pluralization_normalization:
         text = re.sub(r"\(s\)", "s", text)
+
+    if normalization_options.html_normalization:
+        text = handle_html_tags_and_content(text)
+
+    if normalization_options.comma_pacing_normalization:
+        text = handle_comma_pacing(text)
+
+    if normalization_options.month_abbreviation_normalization:
+        text = handle_month_abbreviations(text)
 
     # Replace phone numbers:
     if normalization_options.phone_normalization:

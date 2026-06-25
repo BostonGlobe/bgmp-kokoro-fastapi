@@ -5,6 +5,8 @@ services:
     build:
       context: ../..
       dockerfile: docker/cpu/Dockerfile.optimized
+      args:
+        - INCLUDE_JAPANESE=false
     volumes:
       - ../../api:/app/api
     ports:
