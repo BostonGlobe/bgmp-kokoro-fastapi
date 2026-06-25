@@ -72,7 +72,7 @@ async def test_smart_custom_phenomes():
     # First chunk: text
     assert chunks[0][2] is None  # No pause
     assert (
-        "This is a short test sentence. [Kokoro](/kˈOkəɹO/) has a feature called custom phenomes. This is made possible by [Misaki](/misˈɑki/), the custom phenomizer that [Kokoro](/kˈOkəɹO/) version one uses"
+        "This is a short test sentence. [Kokoro](/kˈOkəɹO/) has a feature called custom phenomes. This is made possible by [Misaki](/misˈɑki/);- the custom phenomizer that [Kokoro](/kˈOkəɹO/) version one uses"
         in chunks[0][0]
     )
     assert len(chunks[0][1]) > 0
