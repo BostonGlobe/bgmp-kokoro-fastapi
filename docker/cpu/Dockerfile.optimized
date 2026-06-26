@@ -39,7 +39,7 @@ RUN apt-get update -y && \
     mkdir -p /app/api/src/models/v1_0 && \
     chown -R appuser:appuser /app
 
-# RUN uv run --extra test --extra cpu pytest api/tests/ --asyncio-mode=auto --cov=api --cov-report=term-missing
+RUN uv run --extra test --extra cpu pytest api/tests/ --asyncio-mode=auto --cov=api --cov-report=term-missing
 
 WORKDIR /app
 
