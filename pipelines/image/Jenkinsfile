@@ -17,7 +17,6 @@ pipeline {
     stage('Install uv') {
         steps {
             sh '''
-                sh 'curl -LsSf https://astral.sh/uv/install.sh | sh'
                 uv venv --python 3.10
                 uv sync --extra cpu --no-cache --no-install-project
             '''
