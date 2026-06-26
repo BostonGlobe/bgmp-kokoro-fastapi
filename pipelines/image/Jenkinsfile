@@ -6,17 +6,6 @@
 
 pipeline {
   agent any
-  environment {
-        // Force uv to install locally in the workspace to bypass root/home permission issues
-        UV_INSTALL_DIR = "${WORKSPACE}/.bin"
-        PATH           = "${WORKSPACE}/.bin:${env.PATH}"
-        
-        // Define an isolated cache directory inside the workspace for Jenkins to preserve
-        UV_CACHE_DIR   = "${WORKSPACE}/.uv_cache"
-        
-        // Prevent uv from modifying system shell profiles (~/.bashrc)
-        INSTALLER_NO_MODIFY_PATH = "1"
-    }
   parameters {
     string(
       name: 'IMAGE_VERSION',
@@ -25,49 +14,37 @@ pipeline {
     )
   }
   stages {
-    stage('Install uv') {
-            steps {
-                // Ensure local bin directory exists
-                sh 'mkdir -p ${UV_INSTALL_DIR}'
-                
-                // Download and install the standalone uv binary to the custom path
-                sh 'curl -LsSf https://astral.sh/uv/install.sh | sh'
-                
-                // Verify successful installation
-                sh 'uv --version'
-            }
+    stage('Build') {
+      steps {
+        script {
+          def imageTag = "bgmp-kokoro-tts:${params.IMAGE_VERSION}"
+          def buildArgs = [
+            '--build-arg INCLUDE_JAPANESE=false'
+          ].join(' ')
+          def runArgs = [
+            "-v ${env.WORKSPACE}/api:/app/api",
+            '-p 8880:8880',
+            '-e PYTHONPATH=/app:/app/api',
+            '-e ONNX_NUM_THREADS=8',
+            '-e ONNX_INTER_OP_THREADS=4',
+            '-e ONNX_EXECUTION_MODE=parallel',
+            '-e ONNX_OPTIMIZATION_LEVEL=all',
+            '-e ONNX_MEMORY_PATTERN=true',
+            '-e ONNX_ARENA_EXTEND_STRATEGY=kNextPowerOfTwo',
+            '-e API_LOG_LEVEL=DEBUG',
+            '-e DOWNLOAD_MODEL=true'
+          ].join(' ')
+
+          docker.build(
+            imageTag,
+            "${buildArgs} -f docker/cpu/Dockerfile.optimized ."
+          )
+
+          echo "Built Docker image ${imageTag}"
+          echo "Container runtime arguments: ${runArgs}"
         }
-    stage('Install dependencies') {
-        steps {
-            sh '''
-              apt-get update
-              apt-get install -y --no-install-recommends \
-                espeak-ng \
-                espeak-ng-data
-                uv venv --python 3.10
-                uv sync --extra cpu --no-cache --no-install-project
-            '''
-        }
+      }
     }
-    stage('Test') {
-        steps {
-            sh '''
-                set -euo pipefail
-                uv run --extra test --extra cpu pytest api/tests/ --asyncio-mode=auto --cov=api --cov-report=term-missing
-            '''
-        }
-    }
-    // stage('Build') {
-    //     steps {
-    //         sh '''
-    //             set -euo pipefail
-    //             IMAGE_TAG="bgmp-kokoro-tts:${IMAGE_VERSION}"
-    //             docker compose -f docker/cpu/docker-compose.yml build
-    //             IMAGE_ID="$(docker compose -f docker/cpu/docker-compose.yml images -q kokoro-tts)"
-    //             docker tag "${IMAGE_ID}" "${IMAGE_TAG}"
-    //         '''
-    //     }
-    // }
     // stage('Push') {
     //     steps {
     //         sh '''
