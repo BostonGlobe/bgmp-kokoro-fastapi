@@ -109,6 +109,8 @@ pipeline {
               }else{
                 echo "Image tag does not yet exist, tagging image..."
               }
+
+              sh "docker tag ${localImageTag} ${remoteImageTag}"
             }
         }
     }
