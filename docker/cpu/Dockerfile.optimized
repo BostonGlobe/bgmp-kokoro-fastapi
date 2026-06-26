@@ -39,6 +39,7 @@ RUN apt-get update -y && \
     mkdir -p /app/api/src/models/v1_0 && \
     chown -R appuser:appuser /app
 
+
 WORKDIR /app
 
 # Copy virtual environment from builder

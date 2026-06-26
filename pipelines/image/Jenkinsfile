@@ -1,0 +1,124 @@
+/**
+* Jenkins file to deploy and restart Kokoro API service on the host nodes.
+* 
+* Pipeline URL: https://jenkins.boston.com/dev2/job/bgmp-kokoro-fastapi-build-push/
+*/
+
+pipeline {
+  agent {
+			label 'docker'
+		}
+  parameters {
+    string(
+      name: 'IMAGE_NAME',
+      defaultValue: 'bgmp-kokoro-tts',
+      description: 'Docker image name to build and push'
+    )
+    string(
+      name: 'IMAGE_VERSION',
+      defaultValue: '0.1.0',
+      description: 'Docker image tag to build and push'
+    )
+  }
+  environment {
+    GITHUB_PAT=credentials('bgmp-kokoro-fastapi')
+  }
+  stages {
+    stage('Prepare Environment') {
+      steps {
+          script {
+              // Get the current user and group IDs.
+              userId = sh(
+                  script: 'id -u',
+                  returnStdout: true
+              ).trim()
+              groupId = sh(
+                  script: 'id -g',
+                  returnStdout: true
+              ).trim()
+
+              // Check if Docker is running
+              def isDockerRunning = sh(
+                  script: "dzdo systemctl is-active docker",
+                  returnStatus: true
+              ) == 0
+
+              if (isDockerRunning) {
+                  // Change permissions if Docker is running
+                  sh "dzdo chown root:docker /var/run/docker.sock"
+              } else {
+                  // Restart Docker if it is not running
+                  echo "Docker is not running. Restarting Docker service."
+                  sh "dzdo systemctl restart docker"
+                  // Wait a moment for Docker to start
+                  sleep(time: 10, unit: 'SECONDS')
+                  // Then change permissions
+                  sh "dzdo chown root:docker /var/run/docker.sock"
+              }
+          }
+      }
+    }
+    stage('Build') {
+      steps {
+        script {
+          def imageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+          def buildArgs = [
+            '--build-arg INCLUDE_JAPANESE=false'
+          ].join(' ')
+          def runArgs = [
+            "-v ${env.WORKSPACE}/api:/app/api",
+            '-p 8880:8880',
+            '-e PYTHONPATH=/app:/app/api',
+            '-e ONNX_NUM_THREADS=8',
+            '-e ONNX_INTER_OP_THREADS=4',
+            '-e ONNX_EXECUTION_MODE=parallel',
+            '-e ONNX_OPTIMIZATION_LEVEL=all',
+            '-e ONNX_MEMORY_PATTERN=true',
+            '-e ONNX_ARENA_EXTEND_STRATEGY=kNextPowerOfTwo',
+            '-e API_LOG_LEVEL=DEBUG',
+            '-e DOWNLOAD_MODEL=true'
+          ].join(' ')
+
+          docker.build(
+            imageTag,
+            "${buildArgs} -f docker/cpu/Dockerfile.optimized ."
+          )
+
+          echo "Built Docker image ${imageTag}"
+          echo "Container runtime arguments: ${runArgs}"
+        }
+      }
+    }
+    stage('Login to GHCR') {
+      steps {
+        sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
+      }
+    }
+    stage('Push') {
+        steps {
+            script {
+              def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def imageExists = sh(
+                script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
+                returnStatus: true
+              ) == 0
+
+              if (imageExists) {
+                error("Image tag already exists in registry: ${remoteImageTag}")
+              }else{
+                echo "Image tag does not yet exist, tagging image..."
+              }
+
+              sh "docker tag ${localImageTag} ${remoteImageTag}"
+              sh "docker push ${remoteImageTag}"
+            }
+        }
+    }
+  }
+  post {
+    always {
+      sh 'docker logout'
+    }
+  }
+}
