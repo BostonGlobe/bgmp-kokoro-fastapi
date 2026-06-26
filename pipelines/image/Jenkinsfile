@@ -10,9 +10,14 @@ pipeline {
 		}
   parameters {
     string(
+      name: 'IMAGE_NAME',
+      defaultValue: 'bgmp-kokoro-tts',
+      description: 'Docker image name to build and push'
+    )
+    string(
       name: 'IMAGE_VERSION',
       defaultValue: '0.1.0',
-      description: 'Docker image tag to build and deploy'
+      description: 'Docker image tag to build and push'
     )
   }
   environment {
@@ -56,7 +61,7 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          def imageTag = "bgmp-kokoro-tts:${params.IMAGE_VERSION}"
+          def imageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
           def buildArgs = [
             '--build-arg INCLUDE_JAPANESE=false'
           ].join(' ')
@@ -89,28 +94,24 @@ pipeline {
         sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
       }
     }
-    // stage('Push') {
-    //     steps {
-    //         sh '''
-    //             set -euo pipefail
-    //             IMAGE_TAG="bgmp-kokoro-tts:${IMAGE_VERSION}"
-    //             docker push "${IMAGE_TAG}"
-    //         '''
-    //     }
-    // }
-    // stage('Deploy') {
-    //   steps {
-    //     sh '''
-    //       NODES=() # TODO: Add nodes once servers are wired up
-    //       docker save "${IMAGE_TAG}" -o "/tmp/bgmp-kokoro-tts-${IMAGE_VERSION}.tar"
-    //       for NODE in "${NODES[@]}"; do
-    //         scp "/tmp/bgmp-kokoro-tts-${IMAGE_VERSION}.tar" "${NODE}:/tmp/"
-    //         rsync -av "${SERVICE_FILE}" "${NODE}:/etc/systemd/system/kokoro-tts.service"
-    //         ssh ${NODE} "docker load -i /tmp/bgmp-kokoro-tts-${IMAGE_VERSION}.tar && systemctl daemon-reload && systemctl restart kokoro-tts"
-    //       done
-    //     '''
-    //   }
-    // }
+    stage('Push') {
+        steps {
+            script {
+              def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def remoteImageTag = "ghcr.io/BostonGlobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def imageExists = sh(
+                script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
+                returnStatus: true
+              ) == 0
+
+              if (imageExists) {
+                error("Image tag already exists in registry: ${remoteImageTag}")
+              }else{
+                echo "Image tag does not yet exist, tagging image..."
+              }
+            }
+        }
+    }
   }
   post {
     always {
