@@ -1,12 +1,12 @@
 /**
 * Jenkins file to deploy and restart Kokoro API service on the host nodes.
 * 
-* Pipeline URL: <add here>
+* Pipeline URL: https://jenkins.boston.com/dev2/job/bgmp-kokoro-fastapi-build-push/
 */
 
 pipeline {
   agent {
-				label 'docker'
+			label 'docker'
 		}
   parameters {
     string(
