@@ -40,6 +40,10 @@ pipeline {
     stage('Install dependencies') {
         steps {
             sh '''
+              sudo apt-get update
+              sudo apt-get install -y --no-install-recommends \
+                espeak-ng \
+                espeak-ng-data
                 uv venv --python 3.10
                 uv sync --extra cpu --no-cache --no-install-project
             '''
