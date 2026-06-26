@@ -111,6 +111,7 @@ pipeline {
               }
 
               sh "docker tag ${localImageTag} ${remoteImageTag}"
+              sh "docker push ${remoteImageTag}"
             }
         }
     }
