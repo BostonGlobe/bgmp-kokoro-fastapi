@@ -98,7 +98,7 @@ pipeline {
         steps {
             script {
               def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
-              def remoteImageTag = "ghcr.io/BostonGlobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
               def imageExists = sh(
                 script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
                 returnStatus: true
