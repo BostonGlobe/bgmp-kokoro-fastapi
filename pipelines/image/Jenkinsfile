@@ -118,7 +118,7 @@ pipeline {
 
           docker.build(
             imageTag,
-            "${buildArgs} --no-cache -f docker/cpu/Dockerfile.optimized ."
+            "${buildArgs} -f docker/cpu/Dockerfile.optimized ."
           )
 
           echo "Built Docker image ${imageTag}"
