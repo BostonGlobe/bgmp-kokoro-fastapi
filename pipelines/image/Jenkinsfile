@@ -58,6 +58,28 @@ pipeline {
           }
       }
     }
+    stage('Login to GHCR') {
+      steps {
+        sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
+      }
+    }
+    stage('Validate Image Tag'){
+        steps {
+            script {
+              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+              def imageExists = sh(
+                script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
+                returnStatus: true
+              ) == 0
+
+              if (imageExists) {
+                error("Image tag already exists in registry: ${remoteImageTag}")
+              }else{
+                echo "Image tag does not yet exist, tagging image..."
+              }
+            }
+        }      
+    }
     stage('Build') {
       steps {
         script {
@@ -89,26 +111,11 @@ pipeline {
         }
       }
     }
-    stage('Login to GHCR') {
-      steps {
-        sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
-      }
-    }
     stage('Push') {
         steps {
             script {
               def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
               def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
-              def imageExists = sh(
-                script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
-                returnStatus: true
-              ) == 0
-
-              if (imageExists) {
-                error("Image tag already exists in registry: ${remoteImageTag}")
-              }else{
-                echo "Image tag does not yet exist, tagging image..."
-              }
 
               sh "docker tag ${localImageTag} ${remoteImageTag}"
               sh "docker push ${remoteImageTag}"
