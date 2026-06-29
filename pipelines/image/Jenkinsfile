@@ -19,6 +19,11 @@ pipeline {
       defaultValue: '0.1.0',
       description: 'Docker image tag to build and push'
     )
+    booleanParam(
+      name: 'DRY_RUN',
+      defaultValue: true,
+      description: 'If unchecked, will push image to GHCR. Else it will just build and test.'
+    )
   }
   environment {
     GITHUB_PAT=credentials('bgmp-kokoro-fastapi')
@@ -60,25 +65,51 @@ pipeline {
     }
     stage('Login to GHCR') {
       steps {
-        sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
+        script{
+          if(params.DRY_RUN){
+            echo "Dry run only, not logging in to GHCR"
+          }else{
+            sh 'echo $GITHUB_PAT_PSW | docker login ghcr.io -u $GITHUB_PAT_USR --password-stdin'
+          }
+        }
       }
     }
     stage('Validate Image Tag'){
         steps {
             script {
-              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
-              def imageExists = sh(
-                script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
-                returnStatus: true
-              ) == 0
+              if(params.DRY_RUN){
+                echo "Dry run only, image tag not relevant, skipping check"
+              }else{ 
+                def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+                def imageExists = sh(
+                  script: "docker manifest inspect ${remoteImageTag} >/dev/null 2>&1",
+                  returnStatus: true
+                ) == 0
 
-              if (imageExists) {
-                error("Image tag already exists in registry: ${remoteImageTag}")
-              }else{
-                echo "Image tag does not yet exist, tagging image..."
+                if (imageExists) {
+                  error("Image tag already exists in registry: ${remoteImageTag}")
+                }else{
+                  echo "Image tag does not yet exist, tagging image..."
+                }
               }
             }
         }      
+    }
+    stage('Test') {
+      steps {
+        script {
+          def imageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+          def buildArgs = [
+            '--build-arg INCLUDE_JAPANESE=false',
+            '--target unit-test'
+          ].join(' ')
+
+          docker.build(
+            imageTag,
+            "${buildArgs} -f docker/cpu/Dockerfile.optimized ."
+          )
+        }
+      }
     }
     stage('Build') {
       steps {
@@ -87,19 +118,6 @@ pipeline {
           def buildArgs = [
             '--build-arg INCLUDE_JAPANESE=false'
           ].join(' ')
-          def runArgs = [
-            "-v ${env.WORKSPACE}/api:/app/api",
-            '-p 8880:8880',
-            '-e PYTHONPATH=/app:/app/api',
-            '-e ONNX_NUM_THREADS=8',
-            '-e ONNX_INTER_OP_THREADS=4',
-            '-e ONNX_EXECUTION_MODE=parallel',
-            '-e ONNX_OPTIMIZATION_LEVEL=all',
-            '-e ONNX_MEMORY_PATTERN=true',
-            '-e ONNX_ARENA_EXTEND_STRATEGY=kNextPowerOfTwo',
-            '-e API_LOG_LEVEL=DEBUG',
-            '-e DOWNLOAD_MODEL=true'
-          ].join(' ')
 
           docker.build(
             imageTag,
@@ -107,18 +125,21 @@ pipeline {
           )
 
           echo "Built Docker image ${imageTag}"
-          echo "Container runtime arguments: ${runArgs}"
         }
       }
     }
     stage('Push') {
         steps {
             script {
-              def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
-              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
 
-              sh "docker tag ${localImageTag} ${remoteImageTag}"
-              sh "docker push ${remoteImageTag}"
+              if(params.DRY_RUN){
+                echo "Dry run only, skipping push step."
+              }else{
+                def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+                def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+                sh "docker tag ${localImageTag} ${remoteImageTag}"
+                sh "docker push ${remoteImageTag}"
+              }
             }
         }
     }
