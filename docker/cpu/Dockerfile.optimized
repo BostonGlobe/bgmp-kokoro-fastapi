@@ -24,7 +24,7 @@ RUN uv venv --python 3.10 && \
     uv sync --extra cpu --no-cache --no-install-project
 
 # Stage 2: Unit tests
-FROM python:3.10 AS unit-test
+FROM builder AS unit-test
 
 # Install runtime dependencies + uv
 RUN apt-get update -y && \

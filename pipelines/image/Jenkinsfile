@@ -95,6 +95,22 @@ pipeline {
             }
         }      
     }
+    stage('Test') {
+      steps {
+        script {
+          def imageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+          def buildArgs = [
+            '--build-arg INCLUDE_JAPANESE=false',
+            '--target unit-test'
+          ].join(' ')
+
+          docker.build(
+            imageTag,
+            "${buildArgs} -f docker/cpu/Dockerfile.optimized ."
+          )
+        }
+      }
+    }
     stage('Build') {
       steps {
         script {
@@ -103,19 +119,6 @@ pipeline {
             '--build-arg INCLUDE_JAPANESE=false',
             '--no-cache'
           ].join(' ')
-          def runArgs = [
-            "-v ${env.WORKSPACE}/api:/app/api",
-            '-p 8880:8880',
-            '-e PYTHONPATH=/app:/app/api',
-            '-e ONNX_NUM_THREADS=8',
-            '-e ONNX_INTER_OP_THREADS=4',
-            '-e ONNX_EXECUTION_MODE=parallel',
-            '-e ONNX_OPTIMIZATION_LEVEL=all',
-            '-e ONNX_MEMORY_PATTERN=true',
-            '-e ONNX_ARENA_EXTEND_STRATEGY=kNextPowerOfTwo',
-            '-e API_LOG_LEVEL=DEBUG',
-            '-e DOWNLOAD_MODEL=true'
-          ].join(' ')
 
           docker.build(
             imageTag,
@@ -123,7 +126,6 @@ pipeline {
           )
 
           echo "Built Docker image ${imageTag}"
-          echo "Container runtime arguments: ${runArgs}"
         }
       }
     }
