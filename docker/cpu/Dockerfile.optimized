@@ -40,8 +40,8 @@ RUN apt-get update -y && \
     chown -R appuser:appuser /app
 
 # Copy project files needed for unit tests
-COPY .coveragerc ./.coveragerc
 COPY api ./api
+COPY examples ./examples
 
 # Install test dependencies and run the unit test suite
 RUN uv sync --extra cpu --extra test --no-cache && \

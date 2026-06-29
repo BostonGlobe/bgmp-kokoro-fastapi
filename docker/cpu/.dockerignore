@@ -27,7 +27,6 @@ ENV/
 *.swo
 
 # Project specific
-examples/
 Kokoro-82M/
 ui/
 tests/
