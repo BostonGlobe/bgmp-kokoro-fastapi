@@ -116,8 +116,7 @@ pipeline {
         script {
           def imageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
           def buildArgs = [
-            '--build-arg INCLUDE_JAPANESE=false',
-            '--no-cache'
+            '--build-arg INCLUDE_JAPANESE=false'
           ].join(' ')
 
           docker.build(

@@ -45,7 +45,7 @@ COPY examples ./examples
 
 # Install test dependencies and run the unit test suite
 RUN uv sync --extra cpu --extra test --no-cache && \
-    uv run --extra test --extra cpu pytest api/tests/ --asyncio-mode=auto --cov=api --cov-report=term-missing
+    uv run --extra test --extra cpu pytest api/tests/ --asyncio-mode=auto --cov=api/src --cov-report=term-missing
 
 # Stage 3: Runtime - slim image
 FROM python:3.10-slim
