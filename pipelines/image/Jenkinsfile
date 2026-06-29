@@ -19,6 +19,11 @@ pipeline {
       defaultValue: '0.1.0',
       description: 'Docker image tag to build and push'
     )
+    booleanParam(
+      name: 'DRY_RUN',
+      defaultValue: true,
+      description: 'If unchecked, will push image to GHCR. Else it will just build and test.'
+    )
   }
   environment {
     GITHUB_PAT=credentials('bgmp-kokoro-fastapi')
@@ -114,11 +119,15 @@ pipeline {
     stage('Push') {
         steps {
             script {
-              def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
-              def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
 
-              sh "docker tag ${localImageTag} ${remoteImageTag}"
-              sh "docker push ${remoteImageTag}"
+              if(params.DRY_RUN){
+                echo "Dry run only, skipping push step."
+              }else{
+                def localImageTag = "${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+                def remoteImageTag = "ghcr.io/bostonglobe/${params.IMAGE_NAME}:${params.IMAGE_VERSION}"
+                sh "docker tag ${localImageTag} ${remoteImageTag}"
+                sh "docker push ${remoteImageTag}"
+              }
             }
         }
     }
