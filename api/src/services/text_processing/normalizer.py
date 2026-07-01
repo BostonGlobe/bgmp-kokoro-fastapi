@@ -635,6 +635,17 @@ def handle_month_abbreviations(text):
         text = text.replace(abbr, full)
     return text
 
+def handle_scores(text):
+    # Normalize scores in the text
+    # Example: Convert "3-2" to "three - two"
+    score_pattern = re.compile(r'(\d+)-(\d+)')
+    return score_pattern.sub(lambda m: f"{INFLECT_ENGINE.number_to_words(int(m.group(1)))} - {INFLECT_ENGINE.number_to_words(int(m.group(2)))}", text)
+
+def handle_number_abbreviations(text):
+    # Normalize number abbreviations in the text
+    # Example: Convert "No. 1" to "Number one"
+    number_abbr_pattern = re.compile(r'No\. (\d+)')
+    return number_abbr_pattern.sub(lambda m: f"Number {INFLECT_ENGINE.number_to_words(int(m.group(1)))}", text)
 
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
@@ -877,6 +888,12 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
 
     if normalization_options.month_abbreviation_normalization:
         text = handle_month_abbreviations(text)
+
+    if normalization_options.score_normalization:
+        text = handle_scores(text)
+
+    if normalization_options.number_abbreviation_normalization:
+        text = handle_number_abbreviations(text)
 
     # Replace phone numbers:
     if normalization_options.phone_normalization:

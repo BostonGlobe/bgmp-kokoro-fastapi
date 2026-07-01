@@ -80,6 +80,8 @@ If a voice is not recognized, the API returns a `400` validation error.
     "html_normalization": true,
     "comma_pacing_normalization": true,
     "month_abbreviation_normalization": true,
+    "score_normalization": true,
+    "number_abbreviation_normalization": true,
     "pronunciation_normalization": false,
     "pronunciation_dictionary": {}
   }
@@ -134,6 +136,8 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `html_normalization` | boolean | Removes HTML tags before synthesis. Default: `true`. |
 | `comma_pacing_normalization` | boolean | Replaces commas with a pacing pattern to improve flow. Default: `true`. |
 | `month_abbreviation_normalization` | boolean | Expands month abbreviations. Default: `true`. |
+| `score_abbreviation` | boolean | Expands instances of 'number-number' to 'number - number' for better parsing. Model will say 'minus' in the first example, and just pause in the second example. Default: `true`. |
+| `number_abbreviation_normalization` | boolean | Expands instance of 'No. #' abbreviations to 'Number #'. Default: `true`. |
 | `pronunciation_normalization` | boolean | Applies pronunciation overrides. Default: `true`. |
 | `pronunciation_dictionary` | object | Custom pronunciation map for specific words. Default: `{}`. |
 
@@ -217,41 +221,6 @@ if ($status >= 400) {
 }
 
 file_put_contents(__DIR__ . "/output.mp3", $audio);
-```
-
-### WordPress `wp_remote_post`
-
-```php
-<?php
-
-$response = wp_remote_post("http://localhost:8880/v1/audio/speech", [
-    "headers" => [
-        "Content-Type" => "application/json",
-    ],
-    "body" => wp_json_encode([
-        "model" => "kokoro",
-        "input" => "Hello world!",
-        "voice" => "af_heart",
-        "response_format" => "mp3",
-        "stream" => true,
-    ]),
-    "timeout" => 120,
-]);
-
-if (is_wp_error($response)) {
-    error_log($response->get_error_message());
-    return;
-}
-
-$status = wp_remote_retrieve_response_code($response);
-$audio = wp_remote_retrieve_body($response);
-
-if ($status >= 400) {
-    error_log("Speech request failed: {$status}");
-    return;
-}
-
-file_put_contents(WP_CONTENT_DIR . "/uploads/output.mp3", $audio);
 ```
 
 ## Practical tips

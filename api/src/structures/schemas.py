@@ -83,6 +83,14 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Replaces month abbreviations with their full names to improve pronunciation.",
     )
+    score_normalization: bool = Field(
+        default=True,
+        description="Replaces scores like 3-2 with 'three to two' to improve pronunciation.",
+    )
+    number_abbreviation_normalization: bool = Field(
+        default=True,
+        description="Replaces number abbreviations like No. 1 with 'Number one' to improve pronunciation.",
+    )
     pronunciation_normalization: bool = Field(
         default=True,
         description="Replaces a preset dictionary of words with their International Phonetic Alphabet spellings to override the default pronunciation.",
