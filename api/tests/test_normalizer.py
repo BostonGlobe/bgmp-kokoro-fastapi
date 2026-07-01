@@ -6,6 +6,7 @@ from api.src.services.text_processing.normalizer import (
     handle_comma_pacing,
     handle_html_tags_and_content,
     handle_month_abbreviations,
+    handle_number_abbreviations,
     handle_pronunciations,
     handle_scores,
     normalize_text,
@@ -345,7 +346,12 @@ def test_handle_scores_replaces_scores_with_words():
 
     result = handle_scores(text)
 
-    assert result == "The final score was three to two in favor of the home team."
+    assert result == "The final score was three - two in favor of the home team."
+
+def test_handle_number_abbreviations_replaces_no_with_number():
+    text = "The winner is No. 1 in the competition."
+    result = handle_number_abbreviations(text)
+    assert result == "The winner is Number one in the competition."
 
 
 def test_number():
