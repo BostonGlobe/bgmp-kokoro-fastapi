@@ -223,41 +223,6 @@ if ($status >= 400) {
 file_put_contents(__DIR__ . "/output.mp3", $audio);
 ```
 
-### WordPress `wp_remote_post`
-
-```php
-<?php
-
-$response = wp_remote_post("http://localhost:8880/v1/audio/speech", [
-    "headers" => [
-        "Content-Type" => "application/json",
-    ],
-    "body" => wp_json_encode([
-        "model" => "kokoro",
-        "input" => "Hello world!",
-        "voice" => "af_heart",
-        "response_format" => "mp3",
-        "stream" => true,
-    ]),
-    "timeout" => 120,
-]);
-
-if (is_wp_error($response)) {
-    error_log($response->get_error_message());
-    return;
-}
-
-$status = wp_remote_retrieve_response_code($response);
-$audio = wp_remote_retrieve_body($response);
-
-if ($status >= 400) {
-    error_log("Speech request failed: {$status}");
-    return;
-}
-
-file_put_contents(WP_CONTENT_DIR . "/uploads/output.mp3", $audio);
-```
-
 ## Practical tips
 
 - Use `stream: true` for the fastest first byte and the best OpenAI-compatible behavior.
