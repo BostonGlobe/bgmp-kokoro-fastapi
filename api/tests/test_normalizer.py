@@ -7,6 +7,7 @@ from api.src.services.text_processing.normalizer import (
     handle_html_tags_and_content,
     handle_month_abbreviations,
     handle_pronunciations,
+    handle_scores,
     normalize_text,
 )
 from api.src.structures.schemas import NormalizationOptions
@@ -338,6 +339,13 @@ def test_handle_month_abbreviations_leaves_non_supported_text_unchanged():
     result = handle_month_abbreviations(text)
 
     assert result == text
+
+def test_handle_scores_replaces_scores_with_words():
+    text = "The final score was 3-2 in favor of the home team."
+
+    result = handle_scores(text)
+
+    assert result == "The final score was three to two in favor of the home team."
 
 
 def test_number():
