@@ -80,6 +80,8 @@ If a voice is not recognized, the API returns a `400` validation error.
     "html_normalization": true,
     "comma_pacing_normalization": true,
     "month_abbreviation_normalization": true,
+    "score_normalization": true,
+    "number_abbreviation_normalization": true,
     "pronunciation_normalization": false,
     "pronunciation_dictionary": {}
   }
@@ -134,6 +136,8 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `html_normalization` | boolean | Removes HTML tags before synthesis. Default: `true`. |
 | `comma_pacing_normalization` | boolean | Replaces commas with a pacing pattern to improve flow. Default: `true`. |
 | `month_abbreviation_normalization` | boolean | Expands month abbreviations. Default: `true`. |
+| `score_abbreviation` | boolean | Expands instances of 'number-number' to 'number - number' for better parsing. Model will say 'minus' in the first example, and just pause in the second example. Default: `true`. |
+| `number_abbreviation_normalization` | boolean | Expands instance of 'No. #' abbreviations to 'Number #'. Default: `true`. |
 | `pronunciation_normalization` | boolean | Applies pronunciation overrides. Default: `true`. |
 | `pronunciation_dictionary` | object | Custom pronunciation map for specific words. Default: `{}`. |
 
