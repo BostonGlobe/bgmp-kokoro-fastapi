@@ -78,7 +78,7 @@ If a voice is not recognized, the API returns a `400` validation error.
     "phone_normalization": true,
     "replace_remaining_symbols": true,
     "html_normalization": true,
-    "comma_pacing_normalization": true,
+    "punctuation_pacing_normalization": true,
     "month_abbreviation_normalization": true,
     "score_normalization": true,
     "number_abbreviation_normalization": true,
@@ -134,7 +134,7 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `phone_normalization` | boolean | Improves pronunciation of phone numbers. Default: `true`. |
 | `replace_remaining_symbols` | boolean | Replaces remaining symbols with words. Default: `true`. |
 | `html_normalization` | boolean | Removes HTML tags before synthesis. Default: `true`. |
-| `comma_pacing_normalization` | boolean | Replaces commas with a pacing pattern to improve flow. Default: `true`. |
+| `punctuation_pacing_normalization` | boolean | Replaces commas with a pacing pattern to improve flow. Default: `true`. |
 | `month_abbreviation_normalization` | boolean | Expands month abbreviations. Default: `true`. |
 | `score_abbreviation` | boolean | Expands instances of 'number-number' to 'number - number' for better parsing. Model will say 'minus' in the first example, and just pause in the second example. Default: `true`. |
 | `number_abbreviation_normalization` | boolean | Expands instance of 'No. #' abbreviations to 'Number #'. Default: `true`. |

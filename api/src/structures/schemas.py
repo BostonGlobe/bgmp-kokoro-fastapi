@@ -75,9 +75,9 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Removes html tags from the input text so they don't get pronounced by kokoro",
     )
-    comma_pacing_normalization: bool = Field(
+    punctuation_pacing_normalization: bool = Field(
         default=True,
-        description="Replaces commas with ';-' to improve pacing of runon sentences.",
+        description="Replaces punctuation to improve pacing of sentences.",
     )
     month_abbreviation_normalization: bool = Field(
         default=True,

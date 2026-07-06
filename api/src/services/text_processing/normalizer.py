@@ -613,6 +613,12 @@ def handle_comma_pacing(text):
     text = replace_commas_with_semicolon_hyphens(text)
     return text
 
+def handle_slashes(text):
+    # Add spaces around slashes in the text for better readability
+    # Example: Convert "and/or" to "and / or"
+    text = text.replace("/", " / ")
+    return text
+
 # Date normalization --------------------------------------------------------------
 def handle_month_abbreviations(text):
     # Normalize dates in the text
@@ -950,7 +956,8 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
 
     text = re.sub(r"\d*\.\d+", handle_decimal, text)
 
-    if normalization_options.comma_pacing_normalization:
+    if normalization_options.punctuation_pacing_normalization:
+        text = handle_slashes(text)
         text = handle_comma_pacing(text)
 
     # Handle other problematic symbols AFTER money/number processing
