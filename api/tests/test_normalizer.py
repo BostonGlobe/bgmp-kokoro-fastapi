@@ -9,6 +9,7 @@ from api.src.services.text_processing.normalizer import (
     handle_number_abbreviations,
     handle_pronunciations,
     handle_scores,
+    handle_slashes,
     normalize_text,
 )
 from api.src.structures.schemas import NormalizationOptions
@@ -321,6 +322,13 @@ def test_handle_comma_pacing_leaves_text_without_commas_unchanged():
     result = handle_comma_pacing(text)
 
     assert result == text
+
+def test_handle_slashes_replaces_all_slashes():
+    text = "One/two/three/four"
+
+    result = handle_slashes(text)
+
+    assert result == "One / two / three / four"
 
 
 def test_handle_month_abbreviations_expands_all_supported_months():
