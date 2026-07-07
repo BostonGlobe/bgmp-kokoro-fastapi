@@ -9,7 +9,7 @@ services:
         - INCLUDE_JAPANESE=false
     volumes:
       - ../../api:/app/api
-      # - ../../output:/app/output  # Mount output directory for NFS file storage
+      # - [NFS location]:/app/output  # Uncomment to mount output directory for NFS file storage
     ports:
       - "8880:8880"
     environment:
