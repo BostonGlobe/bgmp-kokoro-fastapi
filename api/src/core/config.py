@@ -2,6 +2,7 @@ from importlib.metadata import (
     PackageNotFoundError,
     version as _pkg_version,
 )
+import os
 from pathlib import Path
 
 import torch
@@ -25,6 +26,7 @@ class Settings(BaseSettings):
     api_version: str = _read_version()
     host: str = "0.0.0.0"
     port: int = 8880
+    local: bool = os.getenv("LOCAL", "true").lower() == "true"  # Use local output directory by default, else use NFS-mounted output directory
 
     # Application Settings
     output_dir: str = "output"

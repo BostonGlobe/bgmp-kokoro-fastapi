@@ -204,26 +204,32 @@ async def create_speech(
             "pcm": "audio/pcm",
         }.get(request.response_format, f"audio/{request.response_format}")
 
-        writer = StreamingAudioWriter(request.response_format, sample_rate=24000)
+        audio_writer = StreamingAudioWriter(request.response_format, sample_rate=24000)
 
         # Check if streaming is requested (default for OpenAI client)
         if request.stream:
             # Create generator but don't start it yet
             generator = stream_audio_chunks(
-                tts_service, request, client_request, writer
+                tts_service, request, client_request, audio_writer
             )
 
             # If download link requested, wrap generator with temp file writer
             if request.return_download_link:
-                from ..services.temp_manager import TempFileWriter
+                if settings.local:
+                    from ..services.temp_manager import TempFileWriter
+                else:
+                    from ..services.nfs_manager import NfsFileWriter
 
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
-                temp_writer = TempFileWriter(output_format)
-                await temp_writer.__aenter__()  # Initialize temp file
+                if settings.local:
+                    file_writer = TempFileWriter(output_format)
+                else:
+                    file_writer = NfsFileWriter(output_format)
+                await file_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
-                download_path = temp_writer.download_path
+                download_path = file_writer.download_path
 
                 # Create response headers with download path
                 headers = {
@@ -235,7 +241,7 @@ async def create_speech(
                 }
 
                 # Add header to indicate if temp file writing is available
-                if temp_writer._write_error:
+                if file_writer._write_error:
                     headers["X-Download-Status"] = "unavailable"
 
                 # Create async generator for streaming
@@ -244,23 +250,23 @@ async def create_speech(
                         # Write chunks to temp file and stream
                         async for chunk_data in generator:
                             if chunk_data.output:  # Skip empty chunks
-                                await temp_writer.write(chunk_data.output)
+                                await file_writer.write(chunk_data.output)
                                 # if return_json:
                                 #    yield chunk, chunk_data
                                 # else:
                                 yield chunk_data.output
 
                         # Finalize the temp file
-                        await temp_writer.finalize()
+                        await file_writer.finalize()
                     except Exception as e:
                         logger.error(f"Error in dual output streaming: {e}")
-                        await temp_writer.__aexit__(type(e), e, e.__traceback__)
+                        await file_writer.__aexit__(type(e), e, e.__traceback__)
                         raise
                     finally:
                         # Ensure temp writer is closed
-                        if not temp_writer._finalized:
-                            await temp_writer.__aexit__(None, None, None)
-                        writer.close()
+                        if not file_writer._finalized:
+                            await file_writer.__aexit__(None, None, None)
+                        audio_writer.close()
 
                 # Stream with temp file writing
                 return StreamingResponse(
@@ -275,7 +281,7 @@ async def create_speech(
                             yield chunk_data.output
                 except Exception as e:
                     logger.error(f"Error in single output streaming: {e}")
-                    writer.close()
+                    audio_writer.close()
                     raise
 
             # Standard streaming without download link
@@ -299,7 +305,7 @@ async def create_speech(
             audio_data = await tts_service.generate_audio(
                 text=request.input,
                 voice=voice_name,
-                writer=writer,
+                writer=audio_writer,
                 speed=request.speed,
                 volume_multiplier=request.volume_multiplier,
                 normalization_options=request.normalization_options,
@@ -309,7 +315,7 @@ async def create_speech(
             audio_data = await AudioService.convert_audio(
                 audio_data,
                 request.response_format,
-                writer,
+                audio_writer,
                 is_last_chunk=False,
                 trim_audio=False,
             )
@@ -318,39 +324,45 @@ async def create_speech(
             final = await AudioService.convert_audio(
                 AudioChunk(np.array([], dtype=np.int16)),
                 request.response_format,
-                writer,
+                audio_writer,
                 is_last_chunk=True,
             )
             output = audio_data.output + final.output
 
             if request.return_download_link:
-                from ..services.temp_manager import TempFileWriter
+                if settings.local:
+                    from ..services.temp_manager import TempFileWriter
+                else:
+                    from ..services.nfs_manager import NfsFileWriter
 
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
-                temp_writer = TempFileWriter(output_format)
-                await temp_writer.__aenter__()  # Initialize temp file
+                if settings.local:
+                    file_writer = TempFileWriter(output_format)
+                else:
+                    file_writer = NfsFileWriter(output_format)
+                await file_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
-                download_path = temp_writer.download_path
+                download_path = file_writer.download_path
                 headers["X-Download-Path"] = download_path
 
                 try:
                     # Write chunks to temp file
                     logger.info("Writing chunks to tempory file for download")
-                    await temp_writer.write(output)
+                    await file_writer.write(output)
                     # Finalize the temp file
-                    await temp_writer.finalize()
+                    await file_writer.finalize()
 
                 except Exception as e:
                     logger.error(f"Error in dual output: {e}")
-                    await temp_writer.__aexit__(type(e), e, e.__traceback__)
+                    await file_writer.__aexit__(type(e), e, e.__traceback__)
                     raise
                 finally:
                     # Ensure temp writer is closed
-                    if not temp_writer._finalized:
-                        await temp_writer.__aexit__(None, None, None)
-                    writer.close()
+                    if not file_writer._finalized:
+                        await file_writer.__aexit__(None, None, None)
+                    audio_writer.close()
 
             return Response(
                 content=output,
@@ -363,7 +375,7 @@ async def create_speech(
         logger.warning(f"Invalid request: {str(e)}")
 
         try:
-            writer.close()
+            audio_writer.close()
         except:
             pass
 
@@ -380,7 +392,7 @@ async def create_speech(
         logger.error(f"Processing error: {str(e)}")
 
         try:
-            writer.close()
+            audio_writer.close()
         except:
             pass
 
@@ -397,7 +409,7 @@ async def create_speech(
         logger.error(f"Unexpected error in speech generation: {str(e)}")
 
         try:
-            writer.close()
+            audio_writer.close()
         except:
             pass
 
@@ -417,10 +429,16 @@ async def download_audio_file(filename: str):
     try:
         from ..core.paths import _find_file, get_content_type
 
-        # Search for file in temp directory
-        file_path = await _find_file(
-            filename=filename, search_paths=[settings.temp_file_dir]
-        )
+        if settings.local:
+            # Search for file in temp directory
+            file_path = await _find_file(
+                filename=filename, search_paths=[settings.temp_file_dir]
+            )
+        else:
+            # Search for file in NFS-mounted directory
+            file_path = await _find_file(
+                filename=filename, search_paths=[settings.nfs_mount_dir]
+            )
 
         # Get content type from path helper
         content_type = await get_content_type(file_path)

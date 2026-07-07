@@ -50,6 +50,7 @@ ui/data/
 EXTERNAL_UV_DOCUMENTATION*
 app
 api/temp_files/
+output/
 
 # Docker
 # Dockerfile*
@@ -83,7 +84,6 @@ examples/assorted_checks/benchmarks/output_plots/model_unload_longform.png
 examples/assorted_checks/benchmarks/output_plots/model_unload_short.png
 uv.lock
 !docker/test-client/uv.lock
-output/*
 
 # Mac MPS virtualenv for dual testing
 .venv-mps
