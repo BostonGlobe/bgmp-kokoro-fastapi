@@ -80,6 +80,7 @@ class TempFileWriter:
         """
         self.format = format
         self.temp_file = None
+        self.file_dir = settings.temp_file_dir if settings.local else settings.nfs_mount_dir
         self._finalized = False
         self._write_error = False  # Flag to track if we've had a write error
 
@@ -87,12 +88,14 @@ class TempFileWriter:
         """Async context manager entry"""
         try:
             # Clean up old files first
-            await cleanup_temp_files()
+            # TODO: implement NFS file cleanup as API endpoint
+            if settings.local:
+                await cleanup_temp_files()
 
             # Create temp file with proper extension
-            await aiofiles.os.makedirs(settings.temp_file_dir, exist_ok=True)
+            await aiofiles.os.makedirs(self.file_dir, exist_ok=True)
             temp = tempfile.NamedTemporaryFile(
-                dir=settings.temp_file_dir,
+                dir=self.file_dir,
                 delete=False,
                 suffix=f".{self.format}",
                 mode="wb",
