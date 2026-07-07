@@ -80,6 +80,10 @@ class Settings(BaseSettings):
     max_temp_dir_age_hours: int = 1  # Remove temp files older than 1 hour
     max_temp_dir_count: int = 3  # Maximum number of temp files to keep
 
+    # NFS File Settings
+    nfs_mount_dir: str = "output"  # Directory for NFS-mounted files
+
+
     class Config:
         env_file = ".env"
 
