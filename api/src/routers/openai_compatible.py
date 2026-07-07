@@ -324,10 +324,7 @@ async def create_speech(
             output = audio_data.output + final.output
 
             if request.return_download_link:
-                if settings.local:
-                    from ..services.temp_manager import TempFileWriter
-                else:
-                    from ..services.nfs_manager import NfsFileWriter
+                from ..services.temp_manager import TempFileWriter
 
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
