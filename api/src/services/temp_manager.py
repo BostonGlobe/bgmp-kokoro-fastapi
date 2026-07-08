@@ -87,7 +87,8 @@ class TempFileWriter:
         """Async context manager entry"""
         try:
             # Clean up old files first
-            await cleanup_temp_files()
+            # TODO: implement NFS file cleanup as API endpoint
+            # await cleanup_temp_files()
 
             # Create temp file with proper extension
             await aiofiles.os.makedirs(settings.temp_file_dir, exist_ok=True)
