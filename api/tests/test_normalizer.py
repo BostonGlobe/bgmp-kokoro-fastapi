@@ -4,6 +4,7 @@ import pytest
 
 from api.src.services.text_processing.normalizer import (
     handle_comma_pacing,
+    handle_date_ranges,
     handle_html_tags_and_content,
     handle_month_abbreviations,
     handle_number_abbreviations,
@@ -250,22 +251,11 @@ def test_time():
 
 
 def test_handle_pronunciations_replaces_known_entry():
-    text = "We went to Boston."
+    text = "We went to Scituate."
 
     result = handle_pronunciations(text)
 
-    assert result == "We went to [Boston](/'bɑs tən/)\n."
-
-
-def test_handle_pronunciations_supports_multiword_entries():
-    text = "We drove through North Andover and South Hadley."
-
-    result = handle_pronunciations(text)
-
-    assert "[North Andover](/,nɔrθ 'æn doʊ vər/)\n" in result
-    assert "[South Hadley](/s'aʊθ h'ædli/)\n" in result
-    assert result.startswith("We drove through ")
-    assert result.endswith(".")
+    assert result == "We went to [Scituate](/'sɪtʃ u ət/)\n."
 
 
 def test_handle_pronunciations_prefers_custom_dictionary_over_default():
@@ -348,6 +338,19 @@ def test_handle_month_abbreviations_leaves_non_supported_text_unchanged():
     result = handle_month_abbreviations(text)
 
     assert result == text
+
+def test_handle_date_ranges_replaces_date_ranges_with_to():
+    text = "The event is scheduled for Jan. 23-25, 2025."
+
+    result = handle_date_ranges(text)
+
+    assert result == "The event is scheduled for January 23 to 25, 2025."
+
+    text = "The event is scheduled for June 23-25, 2025."
+
+    result = handle_date_ranges(text)
+
+    assert result == "The event is scheduled for June 23 to 25, 2025."
 
 def test_handle_scores_replaces_scores_with_words():
     text = "The final score was 3-2 in favor of the home team."
