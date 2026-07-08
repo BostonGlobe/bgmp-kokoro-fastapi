@@ -3,6 +3,7 @@
 import os
 import tempfile
 from typing import List, Optional
+import uuid
 
 import aiofiles
 from fastapi import HTTPException
@@ -72,16 +73,20 @@ async def cleanup_temp_files() -> None:
 class TempFileWriter:
     """Handles writing audio chunks to a temp file"""
 
-    def __init__(self, format: str):
+    def __init__(self, format: str, product: str = "bgmp", article_id: str = None):
         """Initialize temp file writer
 
         Args:
             format: Audio format extension (mp3, wav, etc)
+            product: The product name to store the output under (default: "bgmp")
+            article_id: An optional article ID for the request, generates a uuid if not provided
         """
         self.format = format
         self.temp_file = None
         self._finalized = False
         self._write_error = False  # Flag to track if we've had a write error
+        self.product = product
+        self.article_id = article_id or str(uuid.uuid4())
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -91,26 +96,20 @@ class TempFileWriter:
             # await cleanup_temp_files()
 
             # Create temp file with proper extension
-            await aiofiles.os.makedirs(settings.temp_file_dir, exist_ok=True)
-            temp = tempfile.NamedTemporaryFile(
-                dir=settings.temp_file_dir,
-                delete=False,
-                suffix=f".{self.format}",
-                mode="wb",
-            )
-            self.temp_file = await aiofiles.open(temp.name, mode="wb")
-            self.temp_path = temp.name
-            temp.close()  # Close sync file, we'll use async version
+            self.temp_path = f"{settings.temp_file_dir}/{self.product}/{self.article_id}.{self.format}"
+
+            await aiofiles.os.makedirs(os.path.dirname(self.temp_path), exist_ok=True)
+            self.temp_file = await aiofiles.open(self.temp_path, mode="wb")
 
             # Generate download path immediately
-            self.download_path = f"/download/{os.path.basename(self.temp_path)}"
+            self.download_path = f"/download/{self.product}/{self.article_id}.{self.format}"
         except Exception as e:
             # Handle permission issues or other errors gracefully
             logger.error(f"Failed to create temp file: {e}")
             self._write_error = True
             # Set a placeholder path so the API can still function
             self.temp_path = f"unavailable_{self.format}"
-            self.download_path = f"/download/{self.temp_path}"
+            self.download_path = f"/download/{self.product}/{self.article_id}.{self.format}"
 
         return self
 

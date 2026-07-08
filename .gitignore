@@ -62,6 +62,7 @@ examples/assorted_checks/test_openai/output/*
 
 
 # Audio files
+output/*.mp3
 examples/*.wav
 examples/*.pcm
 examples/*.mp3

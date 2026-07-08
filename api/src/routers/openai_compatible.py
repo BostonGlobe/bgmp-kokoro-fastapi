@@ -219,7 +219,7 @@ async def create_speech(
 
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
-                temp_writer = TempFileWriter(output_format)
+                temp_writer = TempFileWriter(output_format, request.product, request.article_id)
                 await temp_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
