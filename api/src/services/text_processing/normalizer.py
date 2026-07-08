@@ -299,6 +299,15 @@ def handle_month_abbreviations(text):
         text = text.replace(abbr, full)
     return text
 
+def handle_date_ranges(text):
+    # Normalize date ranges in the text
+    # Example: Convert "Jan. 23-25, 2025" to "January 23 to 25, 2025"
+    date_range_pattern = re.compile(r'(\b(?:Jan\.|Feb\.|Mar\.|Apr\.|May\.|Jun\.|Jul\.|Aug\.|Sep\.|Oct\.|Nov\.|Dec\.)\s+\d{1,2})-(\d{1,2},\s+\d{4}\b)')
+    abbrev = date_range_pattern.sub(lambda m: f"{handle_month_abbreviations(m.group(1))} to {m.group(2)}", text)
+    full_month_range_pattern = re.compile(r'(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2})-(\d{1,2},\s+\d{4}\b)')
+    full = full_month_range_pattern.sub(lambda m: f"{m.group(1)} to {m.group(2)}", abbrev)
+    return full
+
 def handle_scores(text):
     # Normalize scores in the text
     # Example: Convert "3-2" to "three - two"
@@ -552,6 +561,9 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
 
     if normalization_options.month_abbreviation_normalization:
         text = handle_month_abbreviations(text)
+
+    if normalization_options.date_range_normalization:
+        text = handle_date_ranges(text)
 
     if normalization_options.score_normalization:
         text = handle_scores(text)

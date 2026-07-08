@@ -83,6 +83,10 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Replaces month abbreviations with their full names to improve pronunciation.",
     )
+    date_range_normalization: bool = Field(
+        default=True,
+        description="Replaces date ranges like 'start-end' with 'start to end' to improve pronunciation.",
+    )
     score_normalization: bool = Field(
         default=True,
         description="Replaces scores like 3-2 with 'three to two' to improve pronunciation.",
