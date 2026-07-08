@@ -418,16 +418,9 @@ async def download_audio_file(filename: str):
     try:
         from ..core.paths import _find_file, get_content_type
 
-        if settings.local:
-            # Search for file in temp directory
-            file_path = await _find_file(
-                filename=filename, search_paths=[settings.temp_file_dir]
-            )
-        else:
-            # Search for file in NFS-mounted directory
-            file_path = await _find_file(
-                filename=filename, search_paths=[settings.nfs_mount_dir]
-            )
+        file_path = await _find_file(
+            filename=filename, search_paths=[settings.temp_file_dir]
+        )
 
         # Get content type from path helper
         content_type = await get_content_type(file_path)

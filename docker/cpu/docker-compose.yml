@@ -9,7 +9,7 @@ services:
         - INCLUDE_JAPANESE=false
     volumes:
       - ../../api:/app/api
-      # - [NFS location]:/app/output  # Uncomment to mount output directory for NFS file storage
+      - ../../output:/app/output  # Uncomment to mount output directory for NFS file storage
     ports:
       - "8880:8880"
     environment:
@@ -23,7 +23,6 @@ services:
       - ONNX_ARENA_EXTEND_STRATEGY=kNextPowerOfTwo
       - API_LOG_LEVEL=DEBUG
       - DOWNLOAD_MODEL=true
-      - LOCAL=true  # Set to 'true' to use local output directory, setting false uses NFS-mounted output directory
       
   # # Gradio UI service [Comment out everything below if you don't need it]
   # gradio-ui:

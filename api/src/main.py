@@ -89,7 +89,6 @@ async def lifespan(app: FastAPI):
 
 {boundary}
                 """
-    startup_msg += f"\nStarting Kokoro TTS API in {'local' if settings.local else 'NFS'} mode..."
     startup_msg += f"\nModel warmed up on {device}: {model}"
     if device == "mps":
         startup_msg += "\nUsing Apple Metal Performance Shaders (MPS)"
