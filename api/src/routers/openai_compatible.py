@@ -329,7 +329,6 @@ async def create_speech(
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
                 temp_writer = TempFileWriter(output_format)
-
                 await temp_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
@@ -418,6 +417,7 @@ async def download_audio_file(filename: str):
     try:
         from ..core.paths import _find_file, get_content_type
 
+        # Search for file in temp directory
         file_path = await _find_file(
             filename=filename, search_paths=[settings.temp_file_dir]
         )

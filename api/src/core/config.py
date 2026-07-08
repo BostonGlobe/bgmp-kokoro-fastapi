@@ -2,7 +2,6 @@ from importlib.metadata import (
     PackageNotFoundError,
     version as _pkg_version,
 )
-import os
 from pathlib import Path
 
 import torch
