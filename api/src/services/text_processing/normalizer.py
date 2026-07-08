@@ -302,9 +302,9 @@ def handle_month_abbreviations(text):
 def handle_date_ranges(text):
     # Normalize date ranges in the text
     # Example: Convert "Jan. 23-25, 2025" to "January 23 to 25, 2025"
-    date_range_pattern = re.compile(r'(\b(?:Jan\.|Feb\.|Mar\.|Apr\.|May\.|Jun\.|Jul\.|Aug\.|Sep\.|Oct\.|Nov\.|Dec\.)\s+\d{1,2})-(\d{1,2},\s+\d{4}\b)')
+    date_range_pattern = re.compile(r'(\b(?:Jan\.|Feb\.|Mar\.|Apr\.|May\.|Jun\.|Jul\.|Aug\.|Sep\.|Oct\.|Nov\.|Dec\.)\s+\d{1,2})-(\d{1,2})')
     abbrev = date_range_pattern.sub(lambda m: f"{handle_month_abbreviations(m.group(1))} to {m.group(2)}", text)
-    full_month_range_pattern = re.compile(r'(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2})-(\d{1,2},\s+\d{4}\b)')
+    full_month_range_pattern = re.compile(r'(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2})-(\d{1,2})')
     full = full_month_range_pattern.sub(lambda m: f"{m.group(1)} to {m.group(2)}", abbrev)
     return full
 
