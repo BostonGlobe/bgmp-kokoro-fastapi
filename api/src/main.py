@@ -22,7 +22,15 @@ from .routers.web_player import router as web_router
 
 def setup_logger():
     """Configure loguru logger with custom formatting"""
-    valid_levels = ["TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"]
+    valid_levels = [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "SUCCESS",
+        "WARNING",
+        "ERROR",
+        "CRITICAL",
+    ]
     level = os.getenv("API_LOG_LEVEL", "DEBUG").upper()
     if level not in valid_levels:
         level = "DEBUG"
@@ -67,8 +75,8 @@ async def lifespan(app: FastAPI):
         voice_manager = await get_voice_manager()
 
         # Initialize model with warmup and get status
-        device, model, voicepack_count = await model_manager.initialize_with_warmup(
-            voice_manager
+        device, model, voicepack_count = (
+            await model_manager.initialize_with_warmup(voice_manager)
         )
 
     except Exception as e:
@@ -154,4 +162,6 @@ async def test_endpoint():
 
 
 if __name__ == "__main__":
-    uvicorn.run("api.src.main:app", host=settings.host, port=settings.port, reload=True)
+    uvicorn.run(
+        "api.src.main:app", host=settings.host, port=settings.port, reload=True
+    )

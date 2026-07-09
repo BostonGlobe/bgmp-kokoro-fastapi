@@ -55,7 +55,9 @@ def measure_first_token(
         import scipy.io.wavfile as wavfile
 
         sample_rate, audio_data = wavfile.read(audio_path)
-        results["audio_length"] = len(audio_data) / sample_rate  # Length in seconds
+        results["audio_length"] = (
+            len(audio_data) / sample_rate
+        )  # Length in seconds
         results["time_to_first_chunk"] = time.time() - start_time
 
         results["total_time"] = time.time() - start_time
@@ -78,7 +80,9 @@ def main():
 
     # Load sample text
     with open(
-        os.path.join(script_dir, "the_time_machine_hg_wells.txt"), "r", encoding="utf-8"
+        os.path.join(script_dir, "the_time_machine_hg_wells.txt"),
+        "r",
+        encoding="utf-8",
     ) as f:
         text = f.read()
 
@@ -100,7 +104,9 @@ def main():
             result["actual_tokens"] = actual_tokens
             result["run_number"] = i + 1
 
-            print(f"Time to Audio: {result.get('time_to_first_chunk', 'N/A'):.3f}s")
+            print(
+                f"Time to Audio: {result.get('time_to_first_chunk', 'N/A'):.3f}s"
+            )
             print(f"Total time: {result.get('total_time', 'N/A'):.3f}s")
 
             if result["error"]:
@@ -112,7 +118,9 @@ def main():
     summary = {}
     for tokens in token_sizes:
         matching_results = [
-            r for r in all_results if r["target_tokens"] == tokens and not r["error"]
+            r
+            for r in all_results
+            if r["target_tokens"] == tokens and not r["error"]
         ]
         if matching_results:
             avg_first_chunk = sum(
@@ -121,9 +129,9 @@ def main():
             avg_total = sum(r["total_time"] for r in matching_results) / len(
                 matching_results
             )
-            avg_audio_length = sum(r["audio_length"] for r in matching_results) / len(
-                matching_results
-            )
+            avg_audio_length = sum(
+                r["audio_length"] for r in matching_results
+            ) / len(matching_results)
             summary[tokens] = {
                 "avg_time_to_first_chunk": round(avg_first_chunk, 3),
                 "avg_total_time": round(avg_total, 3),
@@ -139,7 +147,8 @@ def main():
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
     }
     save_json_results(
-        results_data, os.path.join(output_data_dir, "first_token_benchmark.json")
+        results_data,
+        os.path.join(output_data_dir, "first_token_benchmark.json"),
     )
 
     # Create plot directory if it doesn't exist
@@ -160,7 +169,9 @@ def main():
         os.path.join(output_plots_dir, "first_token_latency.png"),
     )
 
-    plot_timeline(df, os.path.join(output_plots_dir, "first_token_timeline.png"))
+    plot_timeline(
+        df, os.path.join(output_plots_dir, "first_token_timeline.png")
+    )
 
     print("\nResults and plots saved to:")
     print(f"- {os.path.join(output_data_dir, 'first_token_benchmark.json')}")

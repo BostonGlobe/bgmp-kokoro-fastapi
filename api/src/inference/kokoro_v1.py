@@ -24,8 +24,12 @@ class KokoroV1(BaseModelBackend):
         # Strictly respect settings.use_gpu
         self._device = settings.get_device()
         self._model: Optional[KModel] = None
-        self._pipelines: Dict[str, KPipeline] = {}  # Store pipelines by lang_code
-        self._voice_cache: Dict[str, torch.Tensor] = {}  # Cache voice tensors by path
+        self._pipelines: Dict[str, KPipeline] = (
+            {}
+        )  # Store pipelines by lang_code
+        self._voice_cache: Dict[str, torch.Tensor] = (
+            {}
+        )  # Cache voice tensors by path
 
     async def _get_voice_tensor(self, voice_path: str) -> torch.Tensor:
         """Load voice tensor with in-memory caching to avoid repeated file I/O.
@@ -56,7 +60,9 @@ class KokoroV1(BaseModelBackend):
         try:
             # Get verified model path
             model_path = await paths.get_model_path(path)
-            config_path = os.path.join(os.path.dirname(model_path), "config.json")
+            config_path = os.path.join(
+                os.path.dirname(model_path), "config.json"
+            )
 
             if not os.path.exists(config_path):
                 raise RuntimeError(f"Config file not found: {config_path}")
@@ -96,7 +102,9 @@ class KokoroV1(BaseModelBackend):
             raise RuntimeError("Model not loaded")
 
         if lang_code not in self._pipelines:
-            logger.info(f"Creating new pipeline for language code: {lang_code}")
+            logger.info(
+                f"Creating new pipeline for language code: {lang_code}"
+            )
             self._pipelines[lang_code] = KPipeline(
                 lang_code=lang_code, model=self._model, device=self._device
             )
@@ -181,7 +189,9 @@ class KokoroV1(BaseModelBackend):
                 tokens=tokens, voice=voice_path, speed=speed, model=self._model
             ):
                 if result.audio is not None:
-                    logger.debug(f"Got audio chunk with shape: {result.audio.shape}")
+                    logger.debug(
+                        f"Got audio chunk with shape: {result.audio.shape}"
+                    )
                     yield result.audio.numpy()
                 else:
                     logger.warning("No audio in chunk")
@@ -281,7 +291,9 @@ class KokoroV1(BaseModelBackend):
                 text, voice=voice_path, speed=speed, model=self._model
             ):
                 if result.audio is not None:
-                    logger.debug(f"Got audio chunk with shape: {result.audio.shape}")
+                    logger.debug(
+                        f"Got audio chunk with shape: {result.audio.shape}"
+                    )
                     word_timestamps = None
                     if (
                         return_timestamps
@@ -306,11 +318,18 @@ class KokoroV1(BaseModelBackend):
                                         ]
                                     ):
                                         continue
-                                    if not token.text or not token.text.strip():
+                                    if (
+                                        not token.text
+                                        or not token.text.strip()
+                                    ):
                                         continue
 
-                                    start_time = float(token.start_ts) + current_offset
-                                    end_time = float(token.end_ts) + current_offset
+                                    start_time = (
+                                        float(token.start_ts) + current_offset
+                                    )
+                                    end_time = (
+                                        float(token.end_ts) + current_offset
+                                    )
                                     word_timestamps.append(
                                         WordTimestamp(
                                             word=str(token.text).strip(),
@@ -341,7 +360,9 @@ class KokoroV1(BaseModelBackend):
                 and "out of memory" in str(e).lower()
             ):
                 self._clear_memory()
-                async for chunk in self.generate(text, voice, speed, lang_code):
+                async for chunk in self.generate(
+                    text, voice, speed, lang_code
+                ):
                     yield chunk
             raise
 

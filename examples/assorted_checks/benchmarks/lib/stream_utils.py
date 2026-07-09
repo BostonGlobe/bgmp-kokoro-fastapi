@@ -31,7 +31,9 @@ def process_benchmark_results(
     summary = {}
     for tokens in token_sizes:
         matching_results = [
-            r for r in all_results if r["target_tokens"] == tokens and not r["error"]
+            r
+            for r in all_results
+            if r["target_tokens"] == tokens and not r["error"]
         ]
         if matching_results:
             avg_first_chunk = sum(
@@ -40,9 +42,9 @@ def process_benchmark_results(
             avg_total = sum(r["total_time"] for r in matching_results) / len(
                 matching_results
             )
-            avg_audio_length = sum(r["audio_length"] for r in matching_results) / len(
-                matching_results
-            )
+            avg_audio_length = sum(
+                r["audio_length"] for r in matching_results
+            ) / len(matching_results)
             summary[tokens] = {
                 "avg_time_to_first_chunk": round(avg_first_chunk, 3),
                 "avg_total_time": round(avg_total, 3),
@@ -70,7 +72,9 @@ def save_benchmark_results(
     }
     save_json_results(
         results_data,
-        os.path.join(output_data_dir, f"{prefix}first_token_benchmark{suffix}.json"),
+        os.path.join(
+            output_data_dir, f"{prefix}first_token_benchmark{suffix}.json"
+        ),
     )
 
     # Create DataFrame for plotting
@@ -84,7 +88,9 @@ def save_benchmark_results(
         f"Time to First Audio vs Input Size {plot_title_suffix}",
         "Number of Input Tokens",
         "Time to First Audio (seconds)",
-        os.path.join(output_plots_dir, f"{prefix}first_token_latency{suffix}.png"),
+        os.path.join(
+            output_plots_dir, f"{prefix}first_token_latency{suffix}.png"
+        ),
     )
 
     plot_correlation(
@@ -94,12 +100,16 @@ def save_benchmark_results(
         f"Total Time vs Input Size {plot_title_suffix}",
         "Number of Input Tokens",
         "Total Time (seconds)",
-        os.path.join(output_plots_dir, f"{prefix}total_time_latency{suffix}.png"),
+        os.path.join(
+            output_plots_dir, f"{prefix}total_time_latency{suffix}.png"
+        ),
     )
 
     plot_timeline(
         df,
-        os.path.join(output_plots_dir, f"{prefix}first_token_timeline{suffix}.png"),
+        os.path.join(
+            output_plots_dir, f"{prefix}first_token_timeline{suffix}.png"
+        ),
         suffix=plot_title_suffix,
     )
 
@@ -124,7 +134,9 @@ def run_benchmark(
     # Load sample text
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     with open(
-        os.path.join(script_dir, "the_time_machine_hg_wells.txt"), "r", encoding="utf-8"
+        os.path.join(script_dir, "the_time_machine_hg_wells.txt"),
+        "r",
+        encoding="utf-8",
     ) as f:
         text = f.read()
 
@@ -173,7 +185,9 @@ def run_benchmark(
 
             if result["error"]:
                 print(f"Error: {result['error']}")
-            elif result["audio_path"] and check_audio_silence(result["audio_path"]):
+            elif result["audio_path"] and check_audio_silence(
+                result["audio_path"]
+            ):
                 silent_files.append(result["audio_path"])
 
             all_results.append(result)

@@ -131,7 +131,9 @@ def generate_token_sizes(
     if max_tokens <= dense_max or sparse_step < dense_max:
         return sorted(dense_range)
     # Sparse sampling for larger sizes
-    sparse_range = list(range(dense_max + sparse_step, max_tokens + 1, sparse_step))
+    sparse_range = list(
+        range(dense_max + sparse_step, max_tokens + 1, sparse_step)
+    )
 
     # Combine and deduplicate
     return sorted(list(set(dense_range + sparse_range)))

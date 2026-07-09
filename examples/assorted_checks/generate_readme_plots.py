@@ -20,7 +20,9 @@ sys.path.append(str(script_dir / "benchmarks"))
 from benchmark_tts_rtf import main as benchmark_rtf
 from test_formats.test_audio_formats import main as test_formats
 from benchmark_first_token_stream_unified import main as benchmark_stream
-from test_combinations.test_analyze_combined_voices import main as test_voice_analysis
+from test_combinations.test_analyze_combined_voices import (
+    main as test_voice_analysis,
+)
 
 # Remove directories from path after imports
 sys.path.remove(str(script_dir))
@@ -77,7 +79,10 @@ def main():
     print("\n=== Generating Format Comparison Plot ===")
     test_formats()
     copy_plot(
-        str(script_dir / "test_formats/output/test_formats/format_comparison.png"),
+        str(
+            script_dir
+            / "test_formats/output/test_formats/format_comparison.png"
+        ),
         "format_comparison.png",
         assets_dir,
     )
@@ -106,12 +111,18 @@ def main():
     print("\n=== Generating Performance Benchmark Plots ===")
     benchmark_rtf()
     copy_plot(
-        str(script_dir / f"benchmarks/output_plots/{prefix}_processing_time_rtf.png"),
+        str(
+            script_dir
+            / f"benchmarks/output_plots/{prefix}_processing_time_rtf.png"
+        ),
         f"{prefix}_processing_time.png",
         assets_dir,
     )
     copy_plot(
-        str(script_dir / f"benchmarks/output_plots/{prefix}_realtime_factor_rtf.png"),
+        str(
+            script_dir
+            / f"benchmarks/output_plots/{prefix}_realtime_factor_rtf.png"
+        ),
         f"{prefix}_realtime_factor.png",
         assets_dir,
     )
@@ -126,17 +137,26 @@ def main():
 
     # Copy direct streaming plots
     copy_plot(
-        str(script_dir / "benchmarks/output_plots/first_token_latency_stream.png"),
+        str(
+            script_dir
+            / "benchmarks/output_plots/first_token_latency_stream.png"
+        ),
         f"{prefix}_first_token_latency_direct.png",
         assets_dir,
     )
     copy_plot(
-        str(script_dir / "benchmarks/output_plots/first_token_timeline_stream.png"),
+        str(
+            script_dir
+            / "benchmarks/output_plots/first_token_timeline_stream.png"
+        ),
         f"{prefix}_first_token_timeline_direct.png",
         assets_dir,
     )
     copy_plot(
-        str(script_dir / "benchmarks/output_plots/total_time_latency_stream.png"),
+        str(
+            script_dir
+            / "benchmarks/output_plots/total_time_latency_stream.png"
+        ),
         f"{prefix}_total_time_latency_direct.png",
         assets_dir,
     )
@@ -144,7 +164,8 @@ def main():
     # Copy OpenAI streaming plots
     copy_plot(
         str(
-            script_dir / "benchmarks/output_plots/first_token_latency_stream_openai.png"
+            script_dir
+            / "benchmarks/output_plots/first_token_latency_stream_openai.png"
         ),
         f"{prefix}_first_token_latency_openai.png",
         assets_dir,
@@ -159,7 +180,8 @@ def main():
     )
     copy_plot(
         str(
-            script_dir / "benchmarks/output_plots/total_time_latency_stream_openai.png"
+            script_dir
+            / "benchmarks/output_plots/total_time_latency_stream_openai.png"
         ),
         f"{prefix}_total_time_latency_openai.png",
         assets_dir,

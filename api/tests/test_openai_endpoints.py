@@ -117,7 +117,9 @@ async def test_get_tts_service_initialization():
     """Test TTSService initialization"""
     with patch("api.src.routers.openai_compatible._tts_service", None):
         with patch("api.src.routers.openai_compatible._init_lock", None):
-            with patch("api.src.services.tts_service.TTSService.create") as mock_create:
+            with patch(
+                "api.src.services.tts_service.TTSService.create"
+            ) as mock_create:
                 mock_service = AsyncMock()
                 mock_create.return_value = mock_service
 
@@ -161,7 +163,9 @@ async def test_stream_audio_chunks_client_disconnect():
     writer = StreamingAudioWriter("mp3", 24000)
 
     chunks = []
-    async for chunk in stream_audio_chunks(mock_service, request, mock_request, writer):
+    async for chunk in stream_audio_chunks(
+        mock_service, request, mock_request, writer
+    ):
         chunks.append(chunk)
 
     writer.close()
@@ -238,11 +242,17 @@ def mock_audio_bytes():
 @pytest.fixture
 def mock_tts_service(mock_audio_bytes):
     """Mock TTS service for testing."""
-    with patch("api.src.routers.openai_compatible.get_tts_service") as mock_get:
+    with patch(
+        "api.src.routers.openai_compatible.get_tts_service"
+    ) as mock_get:
         service = AsyncMock(spec=TTSService)
-        service.generate_audio.return_value = AudioChunk(np.zeros(1000, np.int16))
+        service.generate_audio.return_value = AudioChunk(
+            np.zeros(1000, np.int16)
+        )
 
-        async def mock_stream(*args, **kwargs) -> AsyncGenerator[AudioChunk, None]:
+        async def mock_stream(
+            *args, **kwargs
+        ) -> AsyncGenerator[AudioChunk, None]:
             yield AudioChunk(np.ndarray([], np.int16), output=mock_audio_bytes)
 
         service.generate_audio_stream = mock_stream
@@ -260,7 +270,9 @@ def test_openai_speech_endpoint(
 ):
     """Test the OpenAI-compatible speech endpoint with basic MP3 generation"""
     # Configure mocks
-    mock_tts_service.generate_audio.return_value = AudioChunk(np.zeros(1000, np.int16))
+    mock_tts_service.generate_audio.return_value = AudioChunk(
+        np.zeros(1000, np.int16)
+    )
     mock_convert.return_value = AudioChunk(
         np.zeros(1000, np.int16), output=mock_audio_bytes
     )
@@ -284,7 +296,9 @@ def test_openai_speech_endpoint(
     assert mock_convert.call_count == 2
 
 
-def test_openai_speech_streaming(mock_tts_service, test_voice, mock_audio_bytes):
+def test_openai_speech_streaming(
+    mock_tts_service, test_voice, mock_audio_bytes
+):
     """Test the OpenAI-compatible speech endpoint with streaming"""
     response = client.post(
         "/v1/audio/speech",
@@ -307,7 +321,9 @@ def test_openai_speech_streaming(mock_tts_service, test_voice, mock_audio_bytes)
     assert content == mock_audio_bytes
 
 
-def test_openai_speech_pcm_streaming(mock_tts_service, test_voice, mock_audio_bytes):
+def test_openai_speech_pcm_streaming(
+    mock_tts_service, test_voice, mock_audio_bytes
+):
     """Test PCM streaming format"""
     response = client.post(
         "/v1/audio/speech",
@@ -347,7 +363,10 @@ def test_openai_speech_invalid_voice(mock_tts_service):
     assert response.status_code == 400
     error_response = response.json()
     assert error_response["detail"]["error"] == "validation_error"
-    assert "Voice 'invalid_voice' not found" in error_response["detail"]["message"]
+    assert (
+        "Voice 'invalid_voice' not found"
+        in error_response["detail"]["message"]
+    )
     assert error_response["detail"]["type"] == "invalid_request_error"
 
 
@@ -373,7 +392,10 @@ def test_openai_speech_empty_text(mock_tts_service, test_voice):
     assert response.status_code == 400
     error_response = response.json()
     assert error_response["detail"]["error"] == "validation_error"
-    assert "Text is empty after preprocessing" in error_response["detail"]["message"]
+    assert (
+        "Text is empty after preprocessing"
+        in error_response["detail"]["message"]
+    )
     assert error_response["detail"]["type"] == "invalid_request_error"
 
 
@@ -495,7 +517,9 @@ async def test_streaming_initialization_error():
     writer = StreamingAudioWriter("mp3", 24000)
 
     with pytest.raises(RuntimeError) as exc:
-        async for _ in stream_audio_chunks(mock_service, request, MagicMock(), writer):
+        async for _ in stream_audio_chunks(
+            mock_service, request, MagicMock(), writer
+        ):
             pass
 
     writer.close()

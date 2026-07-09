@@ -7,7 +7,14 @@ from typing import AsyncGenerator, List, Tuple, Union
 
 import numpy as np
 import torch
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+)
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from kokoro import KPipeline
 from loguru import logger
@@ -19,7 +26,11 @@ from ..services.streaming_audio_writer import StreamingAudioWriter
 from ..services.temp_manager import TempFileWriter
 from ..services.text_processing import smart_split
 from ..services.tts_service import TTSService
-from ..structures import CaptionedSpeechRequest, CaptionedSpeechResponse, WordTimestamp
+from ..structures import (
+    CaptionedSpeechRequest,
+    CaptionedSpeechResponse,
+    WordTimestamp,
+)
 from ..structures.custom_responses import JSONStreamingResponse
 from ..structures.text_schemas import (
     GenerateFromPhonemesRequest,
@@ -66,12 +77,14 @@ async def phonemize_text(request: PhonemeRequest) -> PhonemeResponse:
     except ValueError as e:
         logger.error(f"Error in phoneme generation: {str(e)}")
         raise HTTPException(
-            status_code=500, detail={"error": "Server error", "message": str(e)}
+            status_code=500,
+            detail={"error": "Server error", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Error in phoneme generation: {str(e)}")
         raise HTTPException(
-            status_code=500, detail={"error": "Server error", "message": str(e)}
+            status_code=500,
+            detail={"error": "Server error", "message": str(e)},
         )
 
 
@@ -90,7 +103,9 @@ async def generate_from_phonemes(
             raise ValueError("Phonemes cannot be empty")
 
         # Create streaming audio writer and normalizer
-        writer = StreamingAudioWriter(format="wav", sample_rate=24000, channels=1)
+        writer = StreamingAudioWriter(
+            format="wav", sample_rate=24000, channels=1
+        )
         normalizer = AudioNormalizer()
 
         async def generate_chunks():
@@ -170,7 +185,9 @@ async def create_captioned_speech(
     try:
         # model_name = get_model_name(request.model)
         tts_service = await get_tts_service()
-        voice_name = await process_and_validate_voices(request.voice, tts_service)
+        voice_name = await process_and_validate_voices(
+            request.voice, tts_service
+        )
 
         # Set content type based on format
         content_type = {
@@ -182,7 +199,9 @@ async def create_captioned_speech(
             "pcm": "audio/pcm",
         }.get(request.response_format, f"audio/{request.response_format}")
 
-        writer = StreamingAudioWriter(request.response_format, sample_rate=24000)
+        writer = StreamingAudioWriter(
+            request.response_format, sample_rate=24000
+        )
         # Check if streaming is requested (default for OpenAI client)
         if request.stream:
             # Create generator but don't start it yet
@@ -243,13 +262,17 @@ async def create_captioned_speech(
                                     chunk_data.word_timestamps is not None
                                     and len(chunk_data.word_timestamps) > 0
                                 ):
-                                    timestamp_acumulator += chunk_data.word_timestamps
+                                    timestamp_acumulator += (
+                                        chunk_data.word_timestamps
+                                    )
 
                         # Finalize the temp file
                         await temp_writer.finalize()
                     except Exception as e:
                         logger.error(f"Error in dual output streaming: {e}")
-                        await temp_writer.__aexit__(type(e), e, e.__traceback__)
+                        await temp_writer.__aexit__(
+                            type(e), e, e.__traceback__
+                        )
                         raise
                     finally:
                         # Ensure temp writer is closed
@@ -259,7 +282,9 @@ async def create_captioned_speech(
 
                 # Stream with temp file writing
                 return JSONStreamingResponse(
-                    dual_output(), media_type="application/json", headers=headers
+                    dual_output(),
+                    media_type="application/json",
+                    headers=headers,
                 )
 
             async def single_output():
@@ -271,14 +296,15 @@ async def create_captioned_speech(
                     async for chunk_data in generator:
                         if chunk_data.output:  # Skip empty chunks
                             # Encode the chunk bytes into base 64
-                            base64_chunk = base64.b64encode(chunk_data.output).decode(
-                                "utf-8"
-                            )
+                            base64_chunk = base64.b64encode(
+                                chunk_data.output
+                            ).decode("utf-8")
 
                             # Add any chunks that may be in the acumulator into the return word_timestamps
                             if chunk_data.word_timestamps is not None:
                                 chunk_data.word_timestamps = (
-                                    timestamp_acumulator + chunk_data.word_timestamps
+                                    timestamp_acumulator
+                                    + chunk_data.word_timestamps
                                 )
                             else:
                                 chunk_data.word_timestamps = []
@@ -294,7 +320,9 @@ async def create_captioned_speech(
                                 chunk_data.word_timestamps is not None
                                 and len(chunk_data.word_timestamps) > 0
                             ):
-                                timestamp_acumulator += chunk_data.word_timestamps
+                                timestamp_acumulator += (
+                                    chunk_data.word_timestamps
+                                )
 
                 except Exception as e:
                     logger.error(f"Error in single output streaming: {e}")
@@ -397,7 +425,9 @@ async def create_captioned_speech(
         )
     except Exception as e:
         # Handle unexpected errors
-        logger.error(f"Unexpected error in captioned speech generation: {str(e)}")
+        logger.error(
+            f"Unexpected error in captioned speech generation: {str(e)}"
+        )
 
         try:
             writer.close()
@@ -425,7 +455,10 @@ async def unload_model(
     """
     try:
         if tts_service.model_manager is None:
-            raise HTTPException(status_code=503, detail={"error": "Model manager not initialized"})
+            raise HTTPException(
+                status_code=503,
+                detail={"error": "Model manager not initialized"},
+            )
         await tts_service.model_manager.unload()
         return JSONResponse({"status": "unloaded"})
     except HTTPException:

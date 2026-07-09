@@ -57,7 +57,9 @@ def measure_first_token_requests(
             if chunk:
                 if first_chunk_time is None:
                     first_chunk_time = time.time()
-                    results["time_to_first_chunk"] = first_chunk_time - start_time
+                    results["time_to_first_chunk"] = (
+                        first_chunk_time - start_time
+                    )
                 chunks.append(chunk)
 
         # Concatenate all PCM chunks
@@ -79,7 +81,9 @@ def measure_first_token_requests(
         import scipy.io.wavfile as wavfile
 
         sample_rate, audio_data = wavfile.read(audio_path)
-        results["audio_length"] = len(audio_data) / sample_rate  # Length in seconds
+        results["audio_length"] = (
+            len(audio_data) / sample_rate
+        )  # Length in seconds
 
         results["total_time"] = time.time() - start_time
 
@@ -115,7 +119,9 @@ def measure_first_token_openai(
         # Initialize OpenAI client
 
         # Save complete audio
-        audio_filename = f"benchmark_tokens{tokens}_run{run_number}_stream_openai.wav"
+        audio_filename = (
+            f"benchmark_tokens{tokens}_run{run_number}_stream_openai.wav"
+        )
         audio_path = os.path.join(output_dir, audio_filename)
         results["audio_path"] = os.path.relpath(audio_path, EXAMPLES_DIR)
 
@@ -135,7 +141,9 @@ def measure_first_token_openai(
                     chunk_count += 1
                     if first_chunk_time is None:
                         first_chunk_time = time.time()
-                        results["time_to_first_chunk"] = first_chunk_time - start_time
+                        results["time_to_first_chunk"] = (
+                            first_chunk_time - start_time
+                        )
                     all_audio_data.extend(chunk)
 
         # Write as WAV file
@@ -151,7 +159,9 @@ def measure_first_token_openai(
         import scipy.io.wavfile as wavfile
 
         sample_rate, audio_data = wavfile.read(audio_path)
-        results["audio_length"] = len(audio_data) / sample_rate  # Length in seconds
+        results["audio_length"] = (
+            len(audio_data) / sample_rate
+        )  # Length in seconds
 
         results["total_time"] = time.time() - start_time
 

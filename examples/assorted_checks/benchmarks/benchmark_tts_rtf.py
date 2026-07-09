@@ -99,7 +99,9 @@ def main():
         return os.path.join(path, filename)
 
     with open(
-        os.path.join(script_dir, "the_time_machine_hg_wells.txt"), "r", encoding="utf-8"
+        os.path.join(script_dir, "the_time_machine_hg_wells.txt"),
+        "r",
+        encoding="utf-8",
     ) as f:
         text = f.read()
 
@@ -160,7 +162,9 @@ def main():
                 "Total tokens processed": df["tokens"].sum(),
                 "Total audio generated (s)": df["output_length"].sum(),
                 "Total test duration (s)": df["elapsed_time"].max(),
-                "Average processing rate (tokens/s)": df["tokens_per_second"].mean(),
+                "Average processing rate (tokens/s)": df[
+                    "tokens_per_second"
+                ].mean(),
                 "Average RTF": df["rtf"].mean(),
                 "Average Real Time Speed": 1 / df["rtf"].mean(),
             },
@@ -234,8 +238,12 @@ def main():
         if "gpu_memory_used" in metrics_df:
             stats[-1]["stats"].update(
                 {
-                    "Peak GPU Memory (MB)": metrics_df["gpu_memory_used"].max(),
-                    "Avg GPU Memory (MB)": metrics_df["gpu_memory_used"].mean(),
+                    "Peak GPU Memory (MB)": metrics_df[
+                        "gpu_memory_used"
+                    ].max(),
+                    "Avg GPU Memory (MB)": metrics_df[
+                        "gpu_memory_used"
+                    ].mean(),
                 }
             )
 
@@ -260,7 +268,9 @@ def main():
     print(f"- {prefix_path(output_plots_dir, 'processing_time_rtf.png')}")
     print(f"- {prefix_path(output_plots_dir, 'realtime_factor_rtf.png')}")
     print(f"- {prefix_path(output_plots_dir, 'system_usage_rtf.png')}")
-    print(f"\nAudio files saved in {output_dir} with prefix: {prefix or '(none)'}")
+    print(
+        f"\nAudio files saved in {output_dir} with prefix: {prefix or '(none)'}"
+    )
 
 
 if __name__ == "__main__":

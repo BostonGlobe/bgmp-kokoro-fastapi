@@ -54,8 +54,15 @@ class EspeakBackend(PhonemizerBackend):
         ps = ps[0] if ps else ""
 
         # Handle special cases
-        ps = ps.replace("kəkˈoːɹoʊ", "kˈoʊkəɹoʊ").replace("kəkˈɔːɹəʊ", "kˈəʊkəɹəʊ")
-        ps = ps.replace("ʲ", "j").replace("r", "ɹ").replace("x", "k").replace("ɬ", "l")
+        ps = ps.replace("kəkˈoːɹoʊ", "kˈoʊkəɹoʊ").replace(
+            "kəkˈɔːɹəʊ", "kˈəʊkəɹəʊ"
+        )
+        ps = (
+            ps.replace("ʲ", "j")
+            .replace("r", "ɹ")
+            .replace("x", "k")
+            .replace("ɬ", "l")
+        )
         ps = re.sub(r"(?<=[a-zɹː])(?=hˈʌndɹɪd)", " ", ps)
         ps = re.sub(r' z(?=[;:,.!?¡¿—…"«»"" ]|$)', "z", ps)
 

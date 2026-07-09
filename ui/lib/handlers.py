@@ -17,7 +17,9 @@ def setup_event_handlers(components: dict, disable_local_saving: bool = False):
             if is_available and voices:
                 # Preserve current voice selection if it exists and is still valid
                 current_voice = components["model"]["voice"].value
-                default_voice = current_voice if current_voice in voices else voices[0]
+                default_voice = (
+                    current_voice if current_voice in voices else voices[0]
+                )
                 return [
                     gr.update(
                         value=f"🔄 TTS Service: {status}",
@@ -121,7 +123,8 @@ def setup_event_handlers(components: dict, disable_local_saving: bool = False):
         return [
             result,
             gr.update(
-                choices=files.list_output_files(), value=os.path.basename(result)
+                choices=files.list_output_files(),
+                value=os.path.basename(result),
             ),
         ]
 
@@ -145,7 +148,8 @@ def setup_event_handlers(components: dict, disable_local_saving: bool = False):
         return [
             result,
             gr.update(
-                choices=files.list_output_files(), value=os.path.basename(result)
+                choices=files.list_output_files(),
+                value=os.path.basename(result),
             ),
         ]
 
@@ -180,7 +184,10 @@ def setup_event_handlers(components: dict, disable_local_saving: bool = False):
     # Connect event handlers
     components["model"]["status_btn"].click(
         fn=refresh_status,
-        outputs=[components["model"]["status_btn"], components["model"]["voice"]],
+        outputs=[
+            components["model"]["status_btn"],
+            components["model"]["voice"],
+        ],
     )
 
     # Connect text submit button (always present)
@@ -212,9 +219,11 @@ def setup_event_handlers(components: dict, disable_local_saving: bool = False):
             fn=handle_file_upload,
             inputs=[components["input"]["file_upload"]],
             outputs=[
-                components["input"]["text_input"]
-                if disable_local_saving
-                else components["input"]["file_select"]
+                (
+                    components["input"]["text_input"]
+                    if disable_local_saving
+                    else components["input"]["file_select"]
+                )
             ],
         )
 

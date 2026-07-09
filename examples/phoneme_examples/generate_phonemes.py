@@ -22,7 +22,9 @@ def get_phonemes(text: str, language: str = "a") -> Tuple[str, list[int]]:
     payload = {"text": text, "language": language}
 
     # Make POST request to the phonemize endpoint
-    response = requests.post("http://localhost:8880/dev/phonemize", json=payload)
+    response = requests.post(
+        "http://localhost:8880/dev/phonemize", json=payload
+    )
 
     # Raise exception for error status codes
     response.raise_for_status()
@@ -32,27 +34,29 @@ def get_phonemes(text: str, language: str = "a") -> Tuple[str, list[int]]:
     return result["phonemes"], result["tokens"]
 
 
-def generate_audio_from_phonemes(phonemes: str, voice: str = "af_bella") -> Optional[bytes]:
+def generate_audio_from_phonemes(
+    phonemes: str, voice: str = "af_bella"
+) -> Optional[bytes]:
     """Generate audio from phonemes."""
     response = requests.post(
         "http://localhost:8880/dev/generate_from_phonemes",
         json={"phonemes": phonemes, "voice": voice},
-        headers={"Accept": "audio/wav"}
+        headers={"Accept": "audio/wav"},
     )
-    
+
     print(f"Response status: {response.status_code}")
     print(f"Response headers: {dict(response.headers)}")
     print(f"Response content type: {response.headers.get('Content-Type')}")
     print(f"Response length: {len(response.content)} bytes")
-    
+
     if response.status_code != 200:
         print(f"Error response: {response.text}")
         return None
-        
+
     if not response.content:
         print("Error: Empty response content")
         return None
-        
+
     return response.content
 
 
@@ -89,7 +93,7 @@ def main():
             # Generate audio from phonemes
             print("Generating audio...")
             audio_bytes = generate_audio_from_phonemes(phonemes)
-            
+
             if not audio_bytes:
                 print("Error: No audio data generated")
                 continue

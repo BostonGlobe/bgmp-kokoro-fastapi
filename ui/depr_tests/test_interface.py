@@ -100,7 +100,9 @@ def test_update_status_unavailable(mock_timer):
 def test_update_status_error(mock_timer):
     """Test status update when an error occurs"""
     with (
-        patch("ui.lib.api.check_api_status", side_effect=Exception("Test error")),
+        patch(
+            "ui.lib.api.check_api_status", side_effect=Exception("Test error")
+        ),
         patch("gradio.Timer", return_value=mock_timer),
     ):
         demo = create_interface()

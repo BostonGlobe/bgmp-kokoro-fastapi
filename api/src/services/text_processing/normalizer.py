@@ -152,7 +152,11 @@ SYMBOL_REPLACEMENTS = {
     "+": " plus ",
 }
 
-MONEY_UNITS = {"$": ("dollar", "cent"), "£": ("pound", "pence"), "€": ("euro", "cent")}
+MONEY_UNITS = {
+    "$": ("dollar", "cent"),
+    "£": ("pound", "pence"),
+    "€": ("euro", "cent"),
+}
 
 # Pre-compiled regex patterns for performance
 EMAIL_PATTERN = re.compile(
@@ -206,17 +210,18 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Stoughton": "/'stoʊtən/",
     "Tyringham": "/t'aɪərɪŋəm/",
     "Whately": "/'hweɪtli/",
-    "Celtics": "/s'ɛltɪks/"
+    "Celtics": "/s'ɛltɪks/",
 }
 
 INFLECT_ENGINE = inflect.engine()
 
 # Pronunciation normalization --------------------------------------------------------------
 
+
 def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
     """
     Normalizes non-traditional names in the given text by converting them to their phonetic IPA representations.
-    
+
     Args:
         text (str): The input text containing non-traditional names.
         pronunciation_dict (dict, optional): A dictionary of words and their International Phonetic Alphabet spellings.
@@ -224,13 +229,14 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
     Returns:
         str: The text with non-traditional names normalized.
     """
+
     def preprocess_pronunciation(proper_noun: str, pn_to_ipa: dict):
         """
         Preprocesses the town name by converting it to the phonetic IPA representation.
-        
+
         Args:
             town_name (str): The name of the town to preprocess.
-        
+
         Returns:
             str: The preprocessed town name.
         """
@@ -238,16 +244,22 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
         if not ipa:
             return proper_noun  # Return the original proper noun if IPA is not available
         return f"[{proper_noun}]({ipa})\n"
-    
+
     pn_to_ipa = DEFAULT_PRONUNCIATION_DICTIONARY.copy()
     if pronunciation_dict:
         pn_to_ipa.update(pronunciation_dict)
 
     # Match the exact known proper nouns, including multi-word and hyphenated names.
     pn_pattern = re.compile(
-        r'\b(?:' + '|'.join(
-            sorted((re.escape(town.strip()) for town in pn_to_ipa.keys()), key=len, reverse=True)
-        ) + r')\b'
+        r"\b(?:"
+        + "|".join(
+            sorted(
+                (re.escape(town.strip()) for town in pn_to_ipa.keys()),
+                key=len,
+                reverse=True,
+            )
+        )
+        + r")\b"
     )
 
     return pn_pattern.sub(
@@ -255,27 +267,33 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
         text,
     )
 
+
 # Remove HTML tags and their content --------------------------------------------------------------
+
 
 def handle_html_tags_and_content(text):
     # Remove HTML tags and their content
-    clean_text = re.sub(r'<.*?>', '', text)
+    clean_text = re.sub(r"<.*?>", "", text)
     return clean_text
+
 
 # Punctuation normalization --------------------------------------------------------------
 def handle_comma_pacing(text):
     # Normalize punctuation in the text
     def replace_commas_with_semicolon_hyphens(text):
         # Replace commas with semicolons
-        return text.replace(',', ';-')
+        return text.replace(",", ";-")
+
     text = replace_commas_with_semicolon_hyphens(text)
     return text
+
 
 def handle_slashes(text):
     # Add spaces around slashes in the text for better readability
     # Example: Convert "and/or" to "and / or"
     text = text.replace("/", " / ")
     return text
+
 
 # Date normalization --------------------------------------------------------------
 def handle_month_abbreviations(text):
@@ -293,32 +311,51 @@ def handle_month_abbreviations(text):
         "Sep.": "September",
         "Oct.": "October",
         "Nov.": "November",
-        "Dec.": "December"
+        "Dec.": "December",
     }
     for abbr, full in month_abbreviations.items():
         text = text.replace(abbr, full)
     return text
 
+
 def handle_date_ranges(text):
     # Normalize date ranges in the text
     # Example: Convert "Jan. 23-25, 2025" to "January 23 to 25, 2025"
-    date_range_pattern = re.compile(r'(\b(?:Jan\.|Feb\.|Mar\.|Apr\.|May\.|Jun\.|Jul\.|Aug\.|Sep\.|Oct\.|Nov\.|Dec\.)\s+\d{1,2})-(\d{1,2})')
-    abbrev = date_range_pattern.sub(lambda m: f"{handle_month_abbreviations(m.group(1))} to {m.group(2)}", text)
-    full_month_range_pattern = re.compile(r'(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2})-(\d{1,2})')
-    full = full_month_range_pattern.sub(lambda m: f"{m.group(1)} to {m.group(2)}", abbrev)
+    date_range_pattern = re.compile(
+        r"(\b(?:Jan\.|Feb\.|Mar\.|Apr\.|May\.|Jun\.|Jul\.|Aug\.|Sep\.|Oct\.|Nov\.|Dec\.)\s+\d{1,2})-(\d{1,2})"
+    )
+    abbrev = date_range_pattern.sub(
+        lambda m: f"{handle_month_abbreviations(m.group(1))} to {m.group(2)}",
+        text,
+    )
+    full_month_range_pattern = re.compile(
+        r"(\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2})-(\d{1,2})"
+    )
+    full = full_month_range_pattern.sub(
+        lambda m: f"{m.group(1)} to {m.group(2)}", abbrev
+    )
     return full
+
 
 def handle_scores(text):
     # Normalize scores in the text
     # Example: Convert "3-2" to "three - two"
-    score_pattern = re.compile(r'(\d+)-(\d+)')
-    return score_pattern.sub(lambda m: f"{INFLECT_ENGINE.number_to_words(int(m.group(1)))} - {INFLECT_ENGINE.number_to_words(int(m.group(2)))}", text)
+    score_pattern = re.compile(r"(\d+)-(\d+)")
+    return score_pattern.sub(
+        lambda m: f"{INFLECT_ENGINE.number_to_words(int(m.group(1)))} - {INFLECT_ENGINE.number_to_words(int(m.group(2)))}",
+        text,
+    )
+
 
 def handle_number_abbreviations(text):
     # Normalize number abbreviations in the text
     # Example: Convert "No. 1" to "Number one"
-    number_abbr_pattern = re.compile(r'No\. (\d+)')
-    return number_abbr_pattern.sub(lambda m: f"Number {INFLECT_ENGINE.number_to_words(int(m.group(1)))}", text)
+    number_abbr_pattern = re.compile(r"No\. (\d+)")
+    return number_abbr_pattern.sub(
+        lambda m: f"Number {INFLECT_ENGINE.number_to_words(int(m.group(1)))}",
+        text,
+    )
+
 
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
@@ -435,7 +472,12 @@ def handle_email(m: re.Match[str]) -> str:
     parts = email.split("@")
     if len(parts) == 2:
         user, domain = parts
-        user = user.replace(".", " dot ").replace("_", " underscore ").replace("-", " dash ").strip()
+        user = (
+            user.replace(".", " dot ")
+            .replace("_", " underscore ")
+            .replace("-", " dash ")
+            .strip()
+        )
         domain = domain.replace(".", " dot ")
         return f"{user} at {domain}"
     return email
@@ -525,7 +567,9 @@ def handle_time(t: re.Match[str]) -> str:
     half = ""
     if len(time_parts) > 2:
         seconds_number = INFLECT_ENGINE.number_to_words(time_parts[2].strip())
-        second_word = INFLECT_ENGINE.plural("second", int(time_parts[2].strip()))
+        second_word = INFLECT_ENGINE.plural(
+            "second", int(time_parts[2].strip())
+        )
         numbers.append(f"and {seconds_number} {second_word}")
     else:
         if t[2] is not None:
@@ -537,7 +581,9 @@ def handle_time(t: re.Match[str]) -> str:
     return " ".join(numbers) + half
 
 
-def normalize_text(text: str, normalization_options: NormalizationOptions) -> str:
+def normalize_text(
+    text: str, normalization_options: NormalizationOptions
+) -> str:
     """Normalize text for TTS processing"""
 
     # Handle email addresses first if enabled
@@ -641,7 +687,9 @@ def normalize_text(text: str, normalization_options: NormalizationOptions) -> st
     text = re.sub(r"(?<=[BCDFGHJ-NP-TV-Z])'?s\b", "'S", text)
     text = re.sub(r"(?<=X')S\b", "s", text)
     text = re.sub(
-        r"(?:[A-Za-z]\.){2,} [a-z]", lambda m: m.group().replace(".", "-"), text
+        r"(?:[A-Za-z]\.){2,} [a-z]",
+        lambda m: m.group().replace(".", "-"),
+        text,
     )
     text = re.sub(r"(?i)(?<=[A-Z])\.(?=[A-Z])", "-", text)
 

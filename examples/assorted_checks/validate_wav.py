@@ -47,10 +47,14 @@ def validate_tts(wav_path: str) -> dict:
                 )
 
         if stats["rms"] < 0.01:
-            issues.append("WARNING: Audio is very quiet - possible failed generation")
+            issues.append(
+                "WARNING: Audio is very quiet - possible failed generation"
+            )
 
         if abs(stats["dc_offset"]) > 0.1:
-            issues.append(f"WARNING: High DC offset ({stats['dc_offset']:.3f})")
+            issues.append(
+                f"WARNING: High DC offset ({stats['dc_offset']:.3f})"
+            )
 
         # Check for long silence gaps
         eps = np.finfo(float).eps
@@ -128,7 +132,10 @@ def validate_tts(wav_path: str) -> dict:
                 chunk1 = audio[i : i + chunk_size]
                 chunk2 = audio[i + chunk_size : i + 2 * chunk_size]
 
-                if np.mean(np.abs(chunk1)) < 0.01 or np.mean(np.abs(chunk2)) < 0.01:
+                if (
+                    np.mean(np.abs(chunk1)) < 0.01
+                    or np.mean(np.abs(chunk2)) < 0.01
+                ):
                     continue
 
                 try:
@@ -184,7 +191,12 @@ def generate_analysis_plots(
     nperseg = 2048
     noverlap = 1536
     f, t, Sxx = spectrogram(
-        audio, sr, nperseg=nperseg, noverlap=noverlap, window="hann", scaling="spectrum"
+        audio,
+        sr,
+        nperseg=nperseg,
+        noverlap=noverlap,
+        window="hann",
+        scaling="spectrum",
     )
 
     # Plot spectrogram
@@ -203,7 +215,9 @@ def generate_analysis_plots(
 
     # Plot waveform with exact time alignment
     times = np.arange(len(audio)) / sr
-    ax2.plot(times, audio, color="#2E5596", alpha=0.7, linewidth=0.5, label="Audio")
+    ax2.plot(
+        times, audio, color="#2E5596", alpha=0.7, linewidth=0.5, label="Audio"
+    )
     ax2.set_ylabel("Amplitude", fontsize=10)
     ax2.set_xlabel("Time [sec]", fontsize=10)
     ax2.grid(True, alpha=0.2)
@@ -216,12 +230,18 @@ def generate_analysis_plots(
         for loc in validation_result["artifact_locations"]:
             ax1.axvline(x=loc, color="red", alpha=0.7, linewidth=2)
             ax2.axvline(
-                x=loc, color="red", alpha=0.7, linewidth=2, label="Detected Artifacts"
+                x=loc,
+                color="red",
+                alpha=0.7,
+                linewidth=2,
+                label="Detected Artifacts",
             )
 
         # Add legend to both plots
         if len(validation_result["artifact_locations"]) > 0:
-            ax1.plot([], [], color="red", linewidth=2, label="Detected Artifacts")
+            ax1.plot(
+                [], [], color="red", linewidth=2, label="Detected Artifacts"
+            )
             ax1.legend(loc="upper right", fontsize=8)
             # Only add unique labels to legend
             handles, labels = ax2.get_legend_handles_labels()
@@ -248,7 +268,12 @@ def generate_analysis_plots(
 
 
 if __name__ == "__main__":
-    wav_file = str(Path(__file__).parent / "benchmarks" / "output_audio" / "chunk_600_tokens.wav")
+    wav_file = str(
+        Path(__file__).parent
+        / "benchmarks"
+        / "output_audio"
+        / "chunk_600_tokens.wav"
+    )
     silent = False
 
     print(f"\n\n Processing:\n\t{wav_file}")

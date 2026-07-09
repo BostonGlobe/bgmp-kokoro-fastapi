@@ -5,7 +5,9 @@ import gradio as gr
 from .. import files
 
 
-def create_output_column(disable_local_saving: bool = False) -> Tuple[gr.Column, dict]:
+def create_output_column(
+    disable_local_saving: bool = False,
+) -> Tuple[gr.Column, dict]:
     """Create the output column with audio player and file list."""
     with gr.Column(scale=1) as col:
         gr.Markdown("### Latest Output")
@@ -19,7 +21,9 @@ def create_output_column(disable_local_saving: bool = False) -> Tuple[gr.Column,
         gr.Markdown("### Generated Files", visible=not disable_local_saving)
         output_files = gr.Dropdown(
             label="Previous Outputs",
-            choices=files.list_output_files() if not disable_local_saving else [],
+            choices=(
+                files.list_output_files() if not disable_local_saving else []
+            ),
             value=None,
             allow_custom_value=True,
             visible=not disable_local_saving,

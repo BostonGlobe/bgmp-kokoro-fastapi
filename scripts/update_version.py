@@ -44,10 +44,16 @@ def update_pyproject(version: str):
         else:
             # Perform replacement
             new_content = re.sub(
-                pattern, rf'\1"{version}"', content, count=1, flags=re.MULTILINE
+                pattern,
+                rf'\1"{version}"',
+                content,
+                count=1,
+                flags=re.MULTILINE,
             )
             PYPROJECT_FILE.write_text(new_content)
-            print(f"Updated {PYPROJECT_FILE} from {current_version} to {version}")
+            print(
+                f"Updated {PYPROJECT_FILE} from {current_version} to {version}"
+            )
 
     except Exception as e:
         print(f"Error processing {PYPROJECT_FILE}: {e}")
@@ -67,7 +73,9 @@ def update_helm_chart(version: str):
         # Update 'version:' line (unquoted)
         # Looks for 'version:' followed by optional whitespace and the version number
         version_pattern = r"^(version:\s*)(\S+)"
-        current_version_match = re.search(version_pattern, content, flags=re.MULTILINE)
+        current_version_match = re.search(
+            version_pattern, content, flags=re.MULTILINE
+        )
         if current_version_match and current_version_match.group(2) != version:
             content = re.sub(
                 version_pattern,
@@ -81,9 +89,13 @@ def update_helm_chart(version: str):
             )
             updated_count += 1
         elif current_version_match:
-            print(f"Already up-to-date: 'version' in {HELM_CHART_FILE} is {version}")
+            print(
+                f"Already up-to-date: 'version' in {HELM_CHART_FILE} is {version}"
+            )
         else:
-            print(f"Warning: 'version:' pattern not found in {HELM_CHART_FILE}")
+            print(
+                f"Warning: 'version:' pattern not found in {HELM_CHART_FILE}"
+            )
 
         # Update 'appVersion:' line (quoted or unquoted)
         # Looks for 'appVersion:' followed by optional whitespace, optional quote, the version, optional quote
@@ -96,9 +108,15 @@ def update_helm_chart(version: str):
             leading_whitespace = current_app_version_match.group(
                 1
             )  # e.g., "appVersion: "
-            opening_quote = current_app_version_match.group(2)  # e.g., '"' or ''
-            current_app_ver = current_app_version_match.group(3)  # e.g., '0.2.0'
-            closing_quote = current_app_version_match.group(4)  # e.g., '"' or ''
+            opening_quote = current_app_version_match.group(
+                2
+            )  # e.g., '"' or ''
+            current_app_ver = current_app_version_match.group(
+                3
+            )  # e.g., '0.2.0'
+            closing_quote = current_app_version_match.group(
+                4
+            )  # e.g., '"' or ''
 
             # Check if quotes were consistent (both present or both absent)
             if opening_quote != closing_quote:
@@ -113,7 +131,9 @@ def update_helm_chart(version: str):
                 )
             else:
                 # Always replace with the quoted version
-                replacement = f'{leading_whitespace}"{version}"'  # Ensure quotes
+                replacement = (
+                    f'{leading_whitespace}"{version}"'  # Ensure quotes
+                )
                 original_display = f"{opening_quote}{current_app_ver}{closing_quote}"  # How it looked before
                 target_display = f'"{version}"'  # How it should look
 
@@ -141,13 +161,19 @@ def update_helm_chart(version: str):
                         )
 
         else:
-            print(f"Warning: 'appVersion:' pattern not found in {HELM_CHART_FILE}")
+            print(
+                f"Warning: 'appVersion:' pattern not found in {HELM_CHART_FILE}"
+            )
 
         # Write back only if changes were made
         if content != original_content:
             HELM_CHART_FILE.write_text(content)
             # Confirmation message printed above during the specific update
-        elif updated_count == 0 and current_version_match and current_app_version_match:
+        elif (
+            updated_count == 0
+            and current_version_match
+            and current_app_version_match
+        ):
             # If no updates were made but patterns were found, confirm it's up-to-date overall
             print(f"Already up-to-date: {HELM_CHART_FILE} (version {version})")
 
@@ -164,11 +190,15 @@ def update_readme(version_with_v: str):
     try:
         content = README_FILE.read_text()
         # Regex to find and capture current ghcr.io/.../kokoro-fastapi-(cpu|gpu):vX.Y.Z
-        pattern = r"(ghcr\.io/remsky/kokoro-fastapi-(?:cpu|gpu)):(v\d+\.\d+\.\d+)"
+        pattern = (
+            r"(ghcr\.io/remsky/kokoro-fastapi-(?:cpu|gpu)):(v\d+\.\d+\.\d+)"
+        )
         matches = list(re.finditer(pattern, content))  # Find all occurrences
 
         if not matches:
-            print(f"Warning: Docker image tag pattern not found in {README_FILE}")
+            print(
+                f"Warning: Docker image tag pattern not found in {README_FILE}"
+            )
         else:
             updated_needed = False
             for match in matches:
@@ -181,7 +211,9 @@ def update_readme(version_with_v: str):
                 # Perform replacement on all occurrences
                 new_content = re.sub(pattern, rf"\1:{version_with_v}", content)
                 README_FILE.write_text(new_content)
-                print(f"Updated Docker image tags in {README_FILE} to {version_with_v}")
+                print(
+                    f"Updated Docker image tags in {README_FILE} to {version_with_v}"
+                )
             else:
                 print(
                     f"Already up-to-date: Docker image tags in {README_FILE} (version {version_with_v})"

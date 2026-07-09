@@ -26,7 +26,10 @@ def test_voice(voice: str):
 
     try:
         response = client.audio.speech.create(
-            model="kokoro", voice=voice, input=SAMPLE_TEXT, response_format="mp3"
+            model="kokoro",
+            voice=voice,
+            input=SAMPLE_TEXT,
+            response_format="mp3",
         )
 
         print("Got response, saving to file...")

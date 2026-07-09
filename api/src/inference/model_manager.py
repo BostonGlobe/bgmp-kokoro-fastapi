@@ -44,7 +44,9 @@ class ModelManager:
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Kokoro V1: {e}")
 
-    async def initialize_with_warmup(self, voice_manager) -> tuple[str, str, int]:
+    async def initialize_with_warmup(
+        self, voice_manager
+    ) -> tuple[str, str, int]:
         """Initialize and warm up model.
 
         Args:
@@ -78,7 +80,9 @@ class ModelManager:
                 # Use default voice name for warmup
                 voice_name = settings.default_voice
                 logger.debug(f"Using default voice '{voice_name}' for warmup")
-                async for _ in self.generate(warmup_text, (voice_name, voice_path)):
+                async for _ in self.generate(
+                    warmup_text, (voice_name, voice_path)
+                ):
                     pass
             except Exception as e:
                 raise RuntimeError(f"Failed to get default voice: {e}")

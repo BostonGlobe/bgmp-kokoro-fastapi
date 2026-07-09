@@ -30,7 +30,9 @@ class StitchOptions(BaseModel):
     @classmethod
     def validate_gap_method(cls, v: str) -> str:
         if v != "static_trim":
-            raise ValueError("Currently only 'static_trim' gap method is supported")
+            raise ValueError(
+                "Currently only 'static_trim' gap method is supported"
+            )
         return v
 
 

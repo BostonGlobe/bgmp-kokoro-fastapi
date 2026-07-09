@@ -5,7 +5,9 @@ import gradio as gr
 from .. import files
 
 
-def create_input_column(disable_local_saving: bool = False) -> Tuple[gr.Column, dict]:
+def create_input_column(
+    disable_local_saving: bool = False,
+) -> Tuple[gr.Column, dict]:
     """Create the input column with text input and file handling."""
     with gr.Column(scale=1) as col:
         text_input = gr.Textbox(
@@ -13,7 +15,9 @@ def create_input_column(disable_local_saving: bool = False) -> Tuple[gr.Column, 
         )
 
         # Always show file upload but handle differently based on disable_local_saving
-        file_upload = gr.File(label="Upload Text File (.txt)", file_types=[".txt"])
+        file_upload = gr.File(
+            label="Upload Text File (.txt)", file_types=[".txt"]
+        )
 
         if not disable_local_saving:
             # Show full interface with tabs when saving is enabled
@@ -36,7 +40,9 @@ def create_input_column(disable_local_saving: bool = False) -> Tuple[gr.Column, 
                     )
 
                     file_preview = gr.Textbox(
-                        label="File Content Preview", interactive=False, lines=4
+                        label="File Content Preview",
+                        interactive=False,
+                        lines=4,
                     )
 
                     with gr.Row():

@@ -59,7 +59,8 @@ def setup_plot(fig, ax, title, xlabel=None, ylabel=None):
 
     # Tick styling
     ax.tick_params(
-        labelsize=STYLE_CONFIG["font_sizes"]["tick"], colors=STYLE_CONFIG["text_color"]
+        labelsize=STYLE_CONFIG["font_sizes"]["tick"],
+        colors=STYLE_CONFIG["text_color"],
     )
 
     # Spine styling
@@ -84,7 +85,9 @@ def plot_system_metrics(metrics_data, output_path):
     """
     df = pd.DataFrame(metrics_data)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
-    elapsed_time = (df["timestamp"] - df["timestamp"].iloc[0]).dt.total_seconds()
+    elapsed_time = (
+        df["timestamp"] - df["timestamp"].iloc[0]
+    ).dt.total_seconds()
 
     # Get baseline values
     baseline_cpu = df["cpu_percent"].iloc[0]
@@ -164,7 +167,9 @@ def plot_system_metrics(metrics_data, output_path):
 
     # Plot GPU Memory if available
     if has_gpu:
-        smoothed_gpu = df["gpu_memory_gb"].rolling(window=window, center=True).mean()
+        smoothed_gpu = (
+            df["gpu_memory_gb"].rolling(window=window, center=True).mean()
+        )
         sns.lineplot(
             x=elapsed_time,
             y=smoothed_gpu,
@@ -223,7 +228,9 @@ def plot_timeline(df, output_path, suffix="", prefix=""):
         runs = df[df["target_tokens"] == tokens]
         base_y = current_y
         for i, (_, run) in enumerate(runs.iterrows()):
-            y_positions[(tokens, run["run_number"])] = base_y + (i * run_spacing)
+            y_positions[(tokens, run["run_number"])] = base_y + (
+                i * run_spacing
+            )
         current_y = base_y + (len(runs) * run_spacing) + group_spacing
 
     # Plot bars and points with more transparency
@@ -258,7 +265,8 @@ def plot_timeline(df, output_path, suffix="", prefix=""):
         token_runs = df[df["target_tokens"] == tokens]
         mean_latency = token_runs["time_to_first_chunk"].mean()
         y_positions_for_token = [
-            y_positions[(tokens, run["run_number"])] for _, run in token_runs.iterrows()
+            y_positions[(tokens, run["run_number"])]
+            for _, run in token_runs.iterrows()
         ]
         min_y = min(y_positions_for_token)
         max_y = max(y_positions_for_token)
@@ -308,14 +316,17 @@ def plot_timeline(df, output_path, suffix="", prefix=""):
 
     # Customize plot
     ax.set_ylim(-1, current_y)
-    ax.set_xlim(0, df["time_to_first_chunk"].max() * 1.3)  # Extra space for labels
+    ax.set_xlim(
+        0, df["time_to_first_chunk"].max() * 1.3
+    )  # Extra space for labels
 
     # Add labels for token groups with tighter spacing
     group_positions = {}
     for tokens in unique_tokens:
         runs = df[df["target_tokens"] == tokens]
         y_positions_for_token = [
-            y_positions[(tokens, run["run_number"])] for _, run in runs.iterrows()
+            y_positions[(tokens, run["run_number"])]
+            for _, run in runs.iterrows()
         ]
         group_positions[tokens] = sum(y_positions_for_token) / len(
             y_positions_for_token
@@ -375,7 +386,12 @@ def plot_correlation(df, x, y, title, xlabel, ylabel, output_path):
 
     # Scatter plot
     sns.scatterplot(
-        data=df, x=x, y=y, s=100, alpha=0.6, color=STYLE_CONFIG["primary_color"]
+        data=df,
+        x=x,
+        y=y,
+        s=100,
+        alpha=0.6,
+        color=STYLE_CONFIG["primary_color"],
     )
 
     # Regression line

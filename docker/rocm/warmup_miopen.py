@@ -47,13 +47,20 @@ def main() -> int:
         )
 
     print(f"[{time.strftime('%H:%M:%S')}] Loading model on GPU...", flush=True)
-    model = KModel(
-        config=str(MODEL_DIR / "config.json"),
-        model=str(MODEL_DIR / "kokoro-v1_0.pth"),
-    ).eval().cuda()
+    model = (
+        KModel(
+            config=str(MODEL_DIR / "config.json"),
+            model=str(MODEL_DIR / "kokoro-v1_0.pth"),
+        )
+        .eval()
+        .cuda()
+    )
     voice = torch.load(VOICE_PATH, weights_only=True)
 
-    print(f"[{time.strftime('%H:%M:%S')}] Warming lengths 1..{MAX_PHONEMES}...", flush=True)
+    print(
+        f"[{time.strftime('%H:%M:%S')}] Warming lengths 1..{MAX_PHONEMES}...",
+        flush=True,
+    )
     total = 0.0
     for n in range(1, MAX_PHONEMES + 1):
         ps = ("a " * ((n + 1) // 2))[:n]
@@ -76,8 +83,10 @@ def main() -> int:
             )
 
     print(f"\nWarmup complete in {total / 60:.1f} minutes")
-    print("Restart the container (or unset the FIND_MODE override) so the "
-          "default MIOPEN_FIND_MODE=2 picks up the populated cache.")
+    print(
+        "Restart the container (or unset the FIND_MODE override) so the "
+        "default MIOPEN_FIND_MODE=2 picks up the populated cache."
+    )
     return 0
 
 

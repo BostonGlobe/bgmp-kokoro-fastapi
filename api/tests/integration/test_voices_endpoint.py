@@ -18,15 +18,15 @@ def test_voices_default_shape(server_url: str):
     r.raise_for_status()
     voices = r.json()["voices"]
     assert voices, "voice list is empty"
-    assert all(isinstance(v, dict) for v in voices), (
-        "default shape must be list[dict] for Open WebUI compatibility"
-    )
-    assert all(set(v.keys()) >= {"id", "name"} for v in voices), (
-        "every entry needs id + name"
-    )
-    assert all(v["id"] == v["name"] for v in voices), (
-        "id and name should match for Kokoro voices"
-    )
+    assert all(
+        isinstance(v, dict) for v in voices
+    ), "default shape must be list[dict] for Open WebUI compatibility"
+    assert all(
+        set(v.keys()) >= {"id", "name"} for v in voices
+    ), "every entry needs id + name"
+    assert all(
+        v["id"] == v["name"] for v in voices
+    ), "id and name should match for Kokoro voices"
 
 
 def test_voices_legacy_shape(server_url: str):
@@ -34,9 +34,9 @@ def test_voices_legacy_shape(server_url: str):
     r.raise_for_status()
     voices = r.json()["voices"]
     assert voices, "legacy voice list is empty"
-    assert all(isinstance(v, str) for v in voices), (
-        "?legacy=true must return plain strings"
-    )
+    assert all(
+        isinstance(v, str) for v in voices
+    ), "?legacy=true must return plain strings"
 
 
 def test_nova_mapping_resolves(openai_client):
@@ -48,6 +48,6 @@ def test_nova_mapping_resolves(openai_client):
         response_format="wav",
     )
     assert response.content, "nova short-name produced empty audio"
-    assert len(response.content) >= 1000, (
-        "nova returned suspiciously small WAV; mapping likely broken again"
-    )
+    assert (
+        len(response.content) >= 1000
+    ), "nova returned suspiciously small WAV; mapping likely broken again"

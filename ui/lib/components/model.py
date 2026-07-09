@@ -5,7 +5,9 @@ import gradio as gr
 from .. import api, config
 
 
-def create_model_column(voice_ids: Optional[list] = None) -> Tuple[gr.Column, dict]:
+def create_model_column(
+    voice_ids: Optional[list] = None,
+) -> Tuple[gr.Column, dict]:
     """Create the model settings column."""
     if voice_ids is None:
         voice_ids = []

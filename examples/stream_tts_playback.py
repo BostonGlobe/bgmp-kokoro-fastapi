@@ -8,7 +8,9 @@ import requests
 import sounddevice as sd
 
 
-def play_streaming_tts(text: str, output_file: str = None, voice: str = "af_sky"):
+def play_streaming_tts(
+    text: str, output_file: str = None, voice: str = "af_sky"
+):
     """Stream TTS audio and play it back in real-time"""
 
     print("\nStarting TTS stream request...")
@@ -47,7 +49,9 @@ def play_streaming_tts(text: str, output_file: str = None, voice: str = "af_sky"
             timeout=1800,
         )
         response.raise_for_status()
-        print(f"Request started successfully after {time.time() - start_time:.2f}s")
+        print(
+            f"Request started successfully after {time.time() - start_time:.2f}s"
+        )
 
         # Process streaming response with smaller chunks for lower latency
         for chunk in response.iter_content(

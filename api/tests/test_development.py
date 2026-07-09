@@ -17,7 +17,9 @@ def test_generate_captioned_speech():
     mock_timestamps_response.content = json.dumps(
         {
             "audio": base64.b64encode(b"mock audio data").decode("utf-8"),
-            "timestamps": [{"word": "test", "start_time": 0.0, "end_time": 1.0}],
+            "timestamps": [
+                {"word": "test", "start_time": 0.0, "end_time": 1.0}
+            ],
         }
     )
 
@@ -31,4 +33,6 @@ def test_generate_captioned_speech():
 
         # Verify we got both audio and timestamps
         assert audio == b"mock audio data"
-        assert timestamps == [{"word": "test", "start_time": 0.0, "end_time": 1.0}]
+        assert timestamps == [
+            {"word": "test", "start_time": 0.0, "end_time": 1.0}
+        ]

@@ -29,9 +29,15 @@ def setup_plot(fig, ax, title):
     ax.grid(True, linestyle="--", alpha=0.3, color="#ffffff")
 
     # Set title and labels with better fonts and more padding
-    ax.set_title(title, pad=40, fontsize=16, fontweight="bold", color="#ffffff")
-    ax.set_xlabel(ax.get_xlabel(), fontsize=14, fontweight="medium", color="#ffffff")
-    ax.set_ylabel(ax.get_ylabel(), fontsize=14, fontweight="medium", color="#ffffff")
+    ax.set_title(
+        title, pad=40, fontsize=16, fontweight="bold", color="#ffffff"
+    )
+    ax.set_xlabel(
+        ax.get_xlabel(), fontsize=14, fontweight="medium", color="#ffffff"
+    )
+    ax.set_ylabel(
+        ax.get_ylabel(), fontsize=14, fontweight="medium", color="#ffffff"
+    )
 
     # Improve tick labels
     ax.tick_params(labelsize=12, colors="#ffffff")
@@ -54,7 +60,9 @@ def plot_format_comparison(stats: list, output_dir: str):
     plt.style.use("dark_background")
 
     # Create figure with subplots
-    fig = plt.figure(figsize=(18, 16))  # Taller figure to accommodate bottom legend
+    fig = plt.figure(
+        figsize=(18, 16)
+    )  # Taller figure to accommodate bottom legend
     fig.patch.set_facecolor("#1a1a2e")
 
     # Create subplot grid with balanced spacing for waveforms
@@ -66,18 +74,24 @@ def plot_format_comparison(stats: list, output_dir: str):
     for i, stat in enumerate(stats):
         format_name = stat["format"].upper()
         try:
-            file_path = os.path.join(output_dir, f"test_audio.{stat['format']}")
+            file_path = os.path.join(
+                output_dir, f"test_audio.{stat['format']}"
+            )
 
             if stat["format"] == "wav":
                 # Use scipy.io.wavfile for WAV files
                 sr, data = wavfile.read(file_path)
-                data = data.astype(np.float32) / 32768.0  # Convert to float [-1, 1]
+                data = (
+                    data.astype(np.float32) / 32768.0
+                )  # Convert to float [-1, 1]
             elif stat["format"] == "pcm":
                 # Read raw 16-bit signed little-endian PCM data at 24kHz
                 data = np.frombuffer(
                     open(file_path, "rb").read(), dtype="<i2"
                 )  # '<i2' means little-endian 16-bit signed int
-                data = data.astype(np.float32) / 32768.0  # Convert to float [-1, 1]
+                data = (
+                    data.astype(np.float32) / 32768.0
+                )  # Convert to float [-1, 1]
                 sr = 24000  # Known sample rate for our endpoint
             else:
                 # Use soundfile for other formats (mp3, opus, flac)
@@ -121,7 +135,9 @@ def plot_format_comparison(stats: list, output_dir: str):
 
     # Sample Rate subplot
     ax3 = plt.subplot(gs_bottom[2])
-    metrics3 = [("Sample Rate", [s["sample_rate"] / 1000 for s in stats], "kHz")]
+    metrics3 = [
+        ("Sample Rate", [s["sample_rate"] / 1000 for s in stats], "kHz")
+    ]
 
     def plot_grouped_bars(ax, metrics, show_legend=True):
         n_groups = len(metrics)
@@ -194,7 +210,9 @@ def plot_format_comparison(stats: list, output_dir: str):
 
     # Save the plot
     plt.savefig(os.path.join(output_dir, "format_comparison.png"), dpi=300)
-    print(f"\nSaved format comparison plot to {output_dir}/format_comparison.png")
+    print(
+        f"\nSaved format comparison plot to {output_dir}/format_comparison.png"
+    )
 
 
 def get_audio_stats(file_path: str) -> dict:
@@ -268,7 +286,9 @@ def main():
                 "stream": False,  # Explicitly disable streaming to get single complete chunk
             },
             stream=False,
-            headers={"Accept": f"audio/{fmt}"},  # Explicitly request audio format
+            headers={
+                "Accept": f"audio/{fmt}"
+            },  # Explicitly request audio format
         )
         generation_time = time.time() - start_time
 

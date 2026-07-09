@@ -89,14 +89,19 @@ async def test_smart_split_only_phenomes():
         chunks.append((chunk_text, chunk_tokens, pause_duration))
 
     assert len(chunks) == 1
-    assert "[Kokoro](/kˈOkəɹO/) [Misaki 1.2](/misˈɑki/) [Test](/tɛst/)" in chunks[0][0]
+    assert (
+        "[Kokoro](/kˈOkəɹO/) [Misaki 1.2](/misˈɑki/) [Test](/tɛst/)"
+        in chunks[0][0]
+    )
 
 
 @pytest.mark.asyncio
 async def test_smart_split_long_text():
     """Test smart splitting with longer text."""
     # Create text that should split into multiple chunks
-    text = ". ".join(["This is test sentence number " + str(i) for i in range(20)])
+    text = ". ".join(
+        ["This is test sentence number " + str(i) for i in range(20)]
+    )
 
     chunks = []
     async for chunk_text, chunk_tokens, _ in smart_split(text):

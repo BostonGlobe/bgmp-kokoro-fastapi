@@ -51,7 +51,9 @@ def test_check_api_status_timeout():
 
 def test_check_api_status_connection_error():
     """Test API connection error"""
-    with patch("requests.get", side_effect=requests.exceptions.ConnectionError):
+    with patch(
+        "requests.get", side_effect=requests.exceptions.ConnectionError
+    ):
         status, voices = api.check_api_status()
         assert status is False
         assert voices == []
@@ -87,7 +89,9 @@ def test_text_to_speech_timeout():
 
 def test_text_to_speech_request_error():
     """Test speech generation request error"""
-    with patch("requests.post", side_effect=requests.exceptions.RequestException):
+    with patch(
+        "requests.post", side_effect=requests.exceptions.RequestException
+    ):
         result = api.text_to_speech("test", "voice1", "mp3", 1.0)
         assert result is None
 
@@ -161,7 +165,7 @@ def test_text_to_speech_output_filename(mock_response, tmp_path):
             result = api.text_to_speech("test text", input_voice, "mp3", 1.0)
 
             assert result is not None
-            assert filename_check(result), (
-                f"Expected voice pattern not found in filename: {result}"
-            )
+            assert filename_check(
+                result
+            ), f"Expected voice pattern not found in filename: {result}"
             mock_file.assert_called_once()

@@ -48,7 +48,9 @@ def text_to_speech(
 
     # Create output filename
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_filename = f"output_{timestamp}_voice-{voice_str}_speed-{speed}.{format}"
+    output_filename = (
+        f"output_{timestamp}_voice-{voice_str}_speed-{speed}.{format}"
+    )
     output_path = os.path.join(OUTPUTS_DIR, output_filename)
 
     try:

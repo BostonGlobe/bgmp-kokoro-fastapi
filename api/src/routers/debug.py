@@ -101,7 +101,9 @@ async def get_system_info():
     process_info = {
         "pid": process.pid,
         "status": process.status(),
-        "create_time": datetime.fromtimestamp(process.create_time()).isoformat(),
+        "create_time": datetime.fromtimestamp(
+            process.create_time()
+        ).isoformat(),
         "cpu_percent": process.cpu_percent(),
         "memory_percent": process.memory_percent(),
     }
@@ -201,7 +203,8 @@ async def get_session_pool_info():
                         "total_mb": gpu.memoryTotal,
                         "used_mb": gpu.memoryUsed,
                         "free_mb": gpu.memoryFree,
-                        "percent_used": (gpu.memoryUsed / gpu.memoryTotal) * 100,
+                        "percent_used": (gpu.memoryUsed / gpu.memoryTotal)
+                        * 100,
                     }
             except Exception:
                 pass
