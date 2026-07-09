@@ -46,7 +46,9 @@ def main():
 
     # Read input text
     with open(
-        os.path.join(script_dir, "the_time_machine_hg_wells.txt"), "r", encoding="utf-8"
+        os.path.join(script_dir, "the_time_machine_hg_wells.txt"),
+        "r",
+        encoding="utf-8",
     ) as f:
         text = f.read()
 
@@ -115,7 +117,9 @@ def main():
                 "Total tokens processed": df["tokens"].sum(),
                 "Total audio generated (s)": df["output_length"].sum(),
                 "Total test duration (s)": df["elapsed_time"].max(),
-                "Average processing rate (tokens/s)": df["tokens_per_second"].mean(),
+                "Average processing rate (tokens/s)": df[
+                    "tokens_per_second"
+                ].mean(),
                 "Average realtime factor": df["realtime_factor"].mean(),
             },
         },
@@ -137,7 +141,9 @@ def main():
             },
         },
     ]
-    write_benchmark_stats(stats, prefix_path(output_data_dir, "benchmark_stats.txt"))
+    write_benchmark_stats(
+        stats, prefix_path(output_data_dir, "benchmark_stats.txt")
+    )
 
     # Plot Processing Time vs Token Count
     plot_correlation(
@@ -174,7 +180,9 @@ def main():
     print(f"- {prefix_path(output_plots_dir, 'system_usage.png')}")
     if any("gpu_memory_used" in m for m in system_metrics):
         print(f"- {prefix_path(output_plots_dir, 'gpu_usage.png')}")
-    print(f"\nAudio files saved in {output_dir} with prefix: {prefix or '(none)'}")
+    print(
+        f"\nAudio files saved in {output_dir} with prefix: {prefix or '(none)'}"
+    )
 
 
 if __name__ == "__main__":

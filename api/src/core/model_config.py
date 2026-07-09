@@ -20,8 +20,12 @@ class KokoroV1Config(BaseModel):
 class PyTorchConfig(BaseModel):
     """PyTorch backend configuration."""
 
-    memory_threshold: float = Field(0.8, description="Memory threshold for cleanup")
-    retry_on_oom: bool = Field(True, description="Whether to retry on OOM errors")
+    memory_threshold: float = Field(
+        0.8, description="Memory threshold for cleanup"
+    )
+    retry_on_oom: bool = Field(
+        True, description="Whether to retry on OOM errors"
+    )
 
     class Config:
         frozen = True
@@ -31,8 +35,12 @@ class ModelConfig(BaseModel):
     """Kokoro V1 model configuration."""
 
     # General settings
-    cache_voices: bool = Field(True, description="Whether to cache voice tensors")
-    voice_cache_size: int = Field(2, description="Maximum number of cached voices")
+    cache_voices: bool = Field(
+        True, description="Whether to cache voice tensors"
+    )
+    voice_cache_size: int = Field(
+        2, description="Maximum number of cached voices"
+    )
 
     # Model filename
     pytorch_kokoro_v1_file: str = Field(

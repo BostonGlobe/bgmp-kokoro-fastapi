@@ -27,13 +27,15 @@ def test_url_protocols():
     )
     assert (
         normalize_text(
-            "Visit http://site.com", normalization_options=NormalizationOptions()
+            "Visit http://site.com",
+            normalization_options=NormalizationOptions(),
         )
         == "Visit http site dot com"
     )
     assert (
         normalize_text(
-            "Go to https://test.org/path", normalization_options=NormalizationOptions()
+            "Go to https://test.org/path",
+            normalization_options=NormalizationOptions(),
         )
         == "Go to https test dot org slash path"
     )
@@ -43,19 +45,22 @@ def test_url_www():
     """Test www prefix handling"""
     assert (
         normalize_text(
-            "Go to www.example.com", normalization_options=NormalizationOptions()
+            "Go to www.example.com",
+            normalization_options=NormalizationOptions(),
         )
         == "Go to www example dot com"
     )
     assert (
         normalize_text(
-            "Visit www.test.org/docs", normalization_options=NormalizationOptions()
+            "Visit www.test.org/docs",
+            normalization_options=NormalizationOptions(),
         )
         == "Visit www test dot org slash docs"
     )
     assert (
         normalize_text(
-            "Check www.site.com?q=test", normalization_options=NormalizationOptions()
+            "Check www.site.com?q=test",
+            normalization_options=NormalizationOptions(),
         )
         == "Check www site dot com question-mark q equals test"
     )
@@ -65,19 +70,22 @@ def test_url_localhost():
     """Test localhost URL handling"""
     assert (
         normalize_text(
-            "Running on localhost:7860", normalization_options=NormalizationOptions()
+            "Running on localhost:7860",
+            normalization_options=NormalizationOptions(),
         )
         == "Running on localhost colon seventy-eight sixty"
     )
     assert (
         normalize_text(
-            "Server at localhost:8080/api", normalization_options=NormalizationOptions()
+            "Server at localhost:8080/api",
+            normalization_options=NormalizationOptions(),
         )
         == "Server at localhost colon eighty eighty slash api"
     )
     assert (
         normalize_text(
-            "Test localhost:3000/test?v=1", normalization_options=NormalizationOptions()
+            "Test localhost:3000/test?v=1",
+            normalization_options=NormalizationOptions(),
         )
         == "Test localhost colon three thousand slash test question-mark v equals one"
     )
@@ -87,18 +95,22 @@ def test_url_ip_addresses():
     """Test IP address URL handling"""
     assert (
         normalize_text(
-            "Access 0.0.0.0:9090/test", normalization_options=NormalizationOptions()
+            "Access 0.0.0.0:9090/test",
+            normalization_options=NormalizationOptions(),
         )
         == "Access zero dot zero dot zero dot zero colon ninety ninety slash test"
     )
     assert (
         normalize_text(
-            "API at 192.168.1.1:8000", normalization_options=NormalizationOptions()
+            "API at 192.168.1.1:8000",
+            normalization_options=NormalizationOptions(),
         )
         == "API at one hundred and ninety-two dot one hundred and sixty-eight dot one dot one colon eight thousand"
     )
     assert (
-        normalize_text("Server 127.0.0.1", normalization_options=NormalizationOptions())
+        normalize_text(
+            "Server 127.0.0.1", normalization_options=NormalizationOptions()
+        )
         == "Server one hundred and twenty-seven dot zero dot zero dot one"
     )
 
@@ -107,7 +119,8 @@ def test_url_raw_domains():
     """Test raw domain handling"""
     assert (
         normalize_text(
-            "Visit google.com/search", normalization_options=NormalizationOptions()
+            "Visit google.com/search",
+            normalization_options=NormalizationOptions(),
         )
         == "Visit google dot com slash search"
     )
@@ -130,19 +143,22 @@ def test_url_email_addresses():
     """Test email address handling"""
     assert (
         normalize_text(
-            "Email me at user@example.com", normalization_options=NormalizationOptions()
+            "Email me at user@example.com",
+            normalization_options=NormalizationOptions(),
         )
         == "Email me at user at example dot com"
     )
     assert (
         normalize_text(
-            "Contact admin@test.org", normalization_options=NormalizationOptions()
+            "Contact admin@test.org",
+            normalization_options=NormalizationOptions(),
         )
         == "Contact admin at test dot org"
     )
     assert (
         normalize_text(
-            "Send to test.user@site.com", normalization_options=NormalizationOptions()
+            "Send to test.user@site.com",
+            normalization_options=NormalizationOptions(),
         )
         == "Send to test dot user at site dot com"
     )
@@ -152,7 +168,8 @@ def test_money():
     """Test that money text is normalized correctly"""
     assert (
         normalize_text(
-            "He lost $5.3 thousand.", normalization_options=NormalizationOptions()
+            "He lost $5.3 thousand.",
+            normalization_options=NormalizationOptions(),
         )
         == "He lost five point three thousand dollars."
     )
@@ -174,13 +191,16 @@ def test_money():
     )
 
     assert (
-        normalize_text("It costs $50.3.", normalization_options=NormalizationOptions())
+        normalize_text(
+            "It costs $50.3.", normalization_options=NormalizationOptions()
+        )
         == "It costs fifty dollars and thirty cents."
     )
 
     assert (
         normalize_text(
-            "The plant cost $200,000.8.", normalization_options=NormalizationOptions()
+            "The plant cost $200,000.8.",
+            normalization_options=NormalizationOptions(),
         )
         == "The plant cost two hundred thousand dollars and eighty cents."
     )
@@ -230,21 +250,24 @@ def test_time():
 
     assert (
         normalize_text(
-            "It is currently 1:00 pm", normalization_options=NormalizationOptions()
+            "It is currently 1:00 pm",
+            normalization_options=NormalizationOptions(),
         )
         == "It is currently one pm"
     )
 
     assert (
         normalize_text(
-            "It is currently 3:00", normalization_options=NormalizationOptions()
+            "It is currently 3:00",
+            normalization_options=NormalizationOptions(),
         )
         == "It is currently three o'clock"
     )
 
     assert (
         normalize_text(
-            "12:00 am is midnight", normalization_options=NormalizationOptions()
+            "12:00 am is midnight",
+            normalization_options=NormalizationOptions(),
         )
         == "twelve am is midnight"
     )
@@ -313,6 +336,7 @@ def test_handle_comma_pacing_leaves_text_without_commas_unchanged():
 
     assert result == text
 
+
 def test_handle_slashes_replaces_all_slashes():
     text = "One/two/three/four"
 
@@ -339,6 +363,7 @@ def test_handle_month_abbreviations_leaves_non_supported_text_unchanged():
 
     assert result == text
 
+
 def test_handle_date_ranges_replaces_date_ranges_with_to():
     text = "The event is scheduled for Jan. 23-25, 2025."
 
@@ -352,12 +377,16 @@ def test_handle_date_ranges_replaces_date_ranges_with_to():
 
     assert result == "The event is scheduled for June 23 to 25, 2025."
 
+
 def test_handle_scores_replaces_scores_with_words():
     text = "The final score was 3-2 in favor of the home team."
 
     result = handle_scores(text)
 
-    assert result == "The final score was three - two in favor of the home team."
+    assert (
+        result == "The final score was three - two in favor of the home team."
+    )
+
 
 def test_handle_number_abbreviations_replaces_no_with_number():
     text = "The winner is No. 1 in the competition."
@@ -370,7 +399,8 @@ def test_number():
 
     assert (
         normalize_text(
-            "I bought 1035 cans of soda", normalization_options=NormalizationOptions()
+            "I bought 1035 cans of soda",
+            normalization_options=NormalizationOptions(),
         )
         == "I bought one thousand and thirty-five cans of soda"
     )
@@ -409,14 +439,16 @@ def test_number():
 
     assert (
         normalize_text(
-            "The book has 342 pages.", normalization_options=NormalizationOptions()
+            "The book has 342 pages.",
+            normalization_options=NormalizationOptions(),
         )
         == "The book has three hundred and forty-two pages."
     )
 
     assert (
         normalize_text(
-            "He made -50 sales today.", normalization_options=NormalizationOptions()
+            "He made -50 sales today.",
+            normalization_options=NormalizationOptions(),
         )
         == "He made minus fifty sales today."
     )
@@ -434,18 +466,22 @@ def test_non_url_text():
     """Test that non-URL text is unaffected"""
     assert (
         normalize_text(
-            "This is not.a.url text", normalization_options=NormalizationOptions()
+            "This is not.a.url text",
+            normalization_options=NormalizationOptions(),
         )
         == "This is not-a-url text"
     )
     assert (
         normalize_text(
-            "Hello, how are you today?", normalization_options=NormalizationOptions()
+            "Hello, how are you today?",
+            normalization_options=NormalizationOptions(),
         )
         == "Hello;- how are you today?"
     )
     assert (
-        normalize_text("It costs $50.", normalization_options=NormalizationOptions())
+        normalize_text(
+            "It costs $50.", normalization_options=NormalizationOptions()
+        )
         == "It costs fifty dollars."
     )
 

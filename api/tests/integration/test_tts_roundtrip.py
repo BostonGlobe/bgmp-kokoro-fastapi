@@ -66,7 +66,9 @@ MIN_AUDIO_BYTES = 1000
 
 def _strip_for_cer(s: str) -> str:
     return "".join(
-        c for c in s if not c.isspace() and not unicodedata.category(c).startswith("P")
+        c
+        for c in s
+        if not c.isspace() and not unicodedata.category(c).startswith("P")
     )
 
 

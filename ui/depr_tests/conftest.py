@@ -17,7 +17,9 @@ async def mock_model_manager():
 async def mock_voice_manager():
     """Mock voice manager for UI tests"""
     manager = AsyncMock()
-    manager.list_voices = AsyncMock(return_value=["af_heart", "bm_lewis", "af_sarah"])
+    manager.list_voices = AsyncMock(
+        return_value=["af_heart", "bm_lewis", "af_sarah"]
+    )
     return manager
 
 
@@ -45,8 +47,12 @@ async def setup_mocks(
     async def mock_create_service():
         return mock_tts_service
 
-    monkeypatch.setattr("api.src.inference.model_manager.get_manager", mock_get_model)
-    monkeypatch.setattr("api.src.inference.voice_manager.get_manager", mock_get_voice)
+    monkeypatch.setattr(
+        "api.src.inference.model_manager.get_manager", mock_get_model
+    )
+    monkeypatch.setattr(
+        "api.src.inference.voice_manager.get_manager", mock_get_voice
+    )
     monkeypatch.setattr(
         "api.src.services.tts_service.TTSService.create", mock_create_service
     )

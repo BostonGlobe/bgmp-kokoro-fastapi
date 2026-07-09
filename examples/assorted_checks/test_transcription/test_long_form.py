@@ -34,7 +34,6 @@ from pathlib import Path
 
 import openai
 
-
 BASE_URL = os.environ.get("KOKORO_BASE_URL", "http://localhost:8880/v1")
 VOICE = os.environ.get("LONGFORM_VOICE", "af_heart")
 WHISPER_MODEL = os.environ.get("WHISPER_MODEL", "base.en")
@@ -44,7 +43,11 @@ WHISPER_COMPUTE = os.environ.get(
 )
 
 SCRIPT_DIR = Path(__file__).parent
-INPUT_PATH = Path(os.environ.get("LONGFORM_INPUT", SCRIPT_DIR / "input" / "journey_all.txt.gz"))
+INPUT_PATH = Path(
+    os.environ.get(
+        "LONGFORM_INPUT", SCRIPT_DIR / "input" / "journey_all.txt.gz"
+    )
+)
 OUTPUT_DIR = SCRIPT_DIR / "output_long_form"
 
 
@@ -66,18 +69,30 @@ def _build_normalizer():
     )
 
     digit_words = {
-        "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
-        "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
-        "10": "ten", "11": "eleven", "12": "twelve",
+        "0": "zero",
+        "1": "one",
+        "2": "two",
+        "3": "three",
+        "4": "four",
+        "5": "five",
+        "6": "six",
+        "7": "seven",
+        "8": "eight",
+        "9": "nine",
+        "10": "ten",
+        "11": "eleven",
+        "12": "twelve",
     }
-    return Compose([
-        ToLowerCase(),
-        RemovePunctuation(),
-        SubstituteWords(digit_words),
-        RemoveMultipleSpaces(),
-        Strip(),
-        ReduceToListOfListOfWords(),
-    ])
+    return Compose(
+        [
+            ToLowerCase(),
+            RemovePunctuation(),
+            SubstituteWords(digit_words),
+            RemoveMultipleSpaces(),
+            Strip(),
+            ReduceToListOfListOfWords(),
+        ]
+    )
 
 
 def clean_input(raw: str) -> str:
@@ -93,7 +108,9 @@ def fmt_time(seconds: float) -> str:
     return f"{m}m{s:02d}s"
 
 
-def synthesize_streaming(client: openai.OpenAI, text: str, out_path: Path) -> float:
+def synthesize_streaming(
+    client: openai.OpenAI, text: str, out_path: Path
+) -> float:
     start = time.perf_counter()
     with client.audio.speech.with_streaming_response.create(
         model="tts-1",
@@ -117,7 +134,11 @@ def fix_streaming_wav_header(wav_path: Path) -> None:
     size = wav_path.stat().st_size
     with open(wav_path, "r+b") as f:
         header = f.read(12)
-        if len(header) < 12 or header[:4] != b"RIFF" or header[8:12] != b"WAVE":
+        if (
+            len(header) < 12
+            or header[:4] != b"RIFF"
+            or header[8:12] != b"WAVE"
+        ):
             return  # not a RIFF/WAVE file, leave it alone
 
         # Walk subchunks until we find 'data', record its size offset.
@@ -151,7 +172,9 @@ def audio_duration_seconds(wav_path: Path) -> float:
         return wf.getnframes() / float(wf.getframerate())
 
 
-def transcribe(model, audio_path: Path, total_audio_s: float | None = None) -> tuple[str, float]:
+def transcribe(
+    model, audio_path: Path, total_audio_s: float | None = None
+) -> tuple[str, float]:
     start = time.perf_counter()
     segments, _info = model.transcribe(
         str(audio_path),
@@ -167,9 +190,14 @@ def transcribe(model, audio_path: Path, total_audio_s: float | None = None) -> t
             elapsed = time.perf_counter() - start
             if total_audio_s:
                 pct = 100.0 * seg.end / total_audio_s
-                print(f"  [{fmt_time(elapsed)}] {fmt_time(seg.end)} / {fmt_time(total_audio_s)} ({pct:.0f}%)", flush=True)
+                print(
+                    f"  [{fmt_time(elapsed)}] {fmt_time(seg.end)} / {fmt_time(total_audio_s)} ({pct:.0f}%)",
+                    flush=True,
+                )
             else:
-                print(f"  [{fmt_time(elapsed)}] {fmt_time(seg.end)}", flush=True)
+                print(
+                    f"  [{fmt_time(elapsed)}] {fmt_time(seg.end)}", flush=True
+                )
             last_print = seg.end
     text = " ".join(parts).strip()
     return text, time.perf_counter() - start
@@ -192,11 +220,13 @@ def main() -> int:
         type=int,
         default=None,
         help="Cap cleaned input at N chars (cuts at the last whitespace before N). "
-             "Default: full file. Also reads LONGFORM_CHARS.",
+        "Default: full file. Also reads LONGFORM_CHARS.",
     )
     args = parser.parse_args()
     if args.synth_only and args.transcribe_only:
-        parser.error("--synth-only and --transcribe-only are mutually exclusive")
+        parser.error(
+            "--synth-only and --transcribe-only are mutually exclusive"
+        )
 
     char_cap = args.chars
     if char_cap is None and os.environ.get("LONGFORM_CHARS"):
@@ -211,7 +241,9 @@ def main() -> int:
     # reference text matches what's actually in the wav.
     if args.transcribe_only and char_cap is None and synth_meta_path.exists():
         try:
-            inherited = json.loads(synth_meta_path.read_text()).get("input_chars_cap")
+            inherited = json.loads(synth_meta_path.read_text()).get(
+                "input_chars_cap"
+            )
             if inherited is not None:
                 char_cap = int(inherited)
                 print(f"Inheriting char cap from prior synth: {char_cap}")
@@ -234,10 +266,16 @@ def main() -> int:
     print(f"Server:      {BASE_URL}")
     print(f"Voice:       {VOICE}")
     if char_cap is not None and char_count < full_chars:
-        print(f"Input:       {INPUT_PATH.name} ({word_count} words, {char_count} chars; capped at {char_cap} of {full_chars})")
+        print(
+            f"Input:       {INPUT_PATH.name} ({word_count} words, {char_count} chars; capped at {char_cap} of {full_chars})"
+        )
     else:
-        print(f"Input:       {INPUT_PATH.name} ({word_count} words, {char_count} chars)")
-    print(f"Whisper:     {WHISPER_MODEL} ({WHISPER_DEVICE}, {WHISPER_COMPUTE}, VAD on)")
+        print(
+            f"Input:       {INPUT_PATH.name} ({word_count} words, {char_count} chars)"
+        )
+    print(
+        f"Whisper:     {WHISPER_MODEL} ({WHISPER_DEVICE}, {WHISPER_COMPUTE}, VAD on)"
+    )
     print()
 
     if args.transcribe_only:
@@ -248,27 +286,38 @@ def main() -> int:
         audio_s = audio_duration_seconds(audio_path)
         synth_rtf = 0.0
         file_mb = audio_path.stat().st_size / (1024 * 1024)
-        print(f"Reusing existing audio ({fmt_time(audio_s)}, {file_mb:.1f} MB)")
+        print(
+            f"Reusing existing audio ({fmt_time(audio_s)}, {file_mb:.1f} MB)"
+        )
         print()
     else:
-        client = openai.OpenAI(base_url=BASE_URL, api_key="not-needed", timeout=None)
+        client = openai.OpenAI(
+            base_url=BASE_URL, api_key="not-needed", timeout=None
+        )
 
         print("Synthesizing...")
         try:
             synth_s = synthesize_streaming(client, text, audio_path)
         except Exception as exc:
-            print(f"  synthesis failed after {time.perf_counter():.1f}s: {exc}")
+            print(
+                f"  synthesis failed after {time.perf_counter():.1f}s: {exc}"
+            )
             return 2
 
         audio_s = audio_duration_seconds(audio_path)
         synth_rtf = audio_s / synth_s if synth_s > 0 else 0.0
         file_mb = audio_path.stat().st_size / (1024 * 1024)
-        synth_meta_path.write_text(json.dumps({
-            "input_file": rel(INPUT_PATH),
-            "input_chars_cap": char_cap,
-            "input_chars": char_count,
-            "voice": VOICE,
-        }, indent=2))
+        synth_meta_path.write_text(
+            json.dumps(
+                {
+                    "input_file": rel(INPUT_PATH),
+                    "input_chars_cap": char_cap,
+                    "input_chars": char_count,
+                    "voice": VOICE,
+                },
+                indent=2,
+            )
+        )
         print(f"  synth time:    {fmt_time(synth_s)}")
         print(f"  audio length:  {fmt_time(audio_s)}")
         print(f"  synth speedup: {synth_rtf:.2f}x realtime")
@@ -292,7 +341,9 @@ def main() -> int:
         report_path = OUTPUT_DIR / "long_form_report.json"
         report_path.write_text(json.dumps(report, indent=2))
         print("Summary (synth-only)")
-        print(f"  generated {fmt_time(audio_s)} of audio in {fmt_time(synth_s)} ({synth_rtf:.1f}x rt)")
+        print(
+            f"  generated {fmt_time(audio_s)} of audio in {fmt_time(synth_s)} ({synth_rtf:.1f}x rt)"
+        )
         print(f"  audio:  {rel(audio_path)}")
         print(f"  report: {rel(report_path)}")
         return 0
@@ -303,7 +354,9 @@ def main() -> int:
     normalize = _build_normalizer()
 
     print(f"Loading Whisper model ({WHISPER_DEVICE}, {WHISPER_COMPUTE})...")
-    model = WhisperModel(WHISPER_MODEL, device=WHISPER_DEVICE, compute_type=WHISPER_COMPUTE)
+    model = WhisperModel(
+        WHISPER_MODEL, device=WHISPER_DEVICE, compute_type=WHISPER_COMPUTE
+    )
 
     print("Transcribing...")
     transcript, trans_s = transcribe(model, audio_path, audio_s)
@@ -325,22 +378,26 @@ def main() -> int:
     transcript_path = OUTPUT_DIR / f"long_form_{VOICE}.transcript.txt"
     transcript_path.write_text(transcript, encoding="utf-8")
 
-    report.update({
-        "whisper_model": WHISPER_MODEL,
-        "whisper_device": WHISPER_DEVICE,
-        "whisper_compute": WHISPER_COMPUTE,
-        "transcribe_seconds": round(trans_s, 2),
-        "transcribe_realtime_factor": round(trans_rtf, 2),
-        "transcript_words": len(transcript.split()),
-        "wer": round(score, 4),
-        "transcript_file": rel(transcript_path),
-    })
+    report.update(
+        {
+            "whisper_model": WHISPER_MODEL,
+            "whisper_device": WHISPER_DEVICE,
+            "whisper_compute": WHISPER_COMPUTE,
+            "transcribe_seconds": round(trans_s, 2),
+            "transcribe_realtime_factor": round(trans_rtf, 2),
+            "transcript_words": len(transcript.split()),
+            "wer": round(score, 4),
+            "transcript_file": rel(transcript_path),
+        }
+    )
     report_path = OUTPUT_DIR / "long_form_report.json"
     report_path.write_text(json.dumps(report, indent=2))
 
     print("Summary")
     if synth_s > 0:
-        print(f"  generated {fmt_time(audio_s)} of audio in {fmt_time(synth_s)} ({synth_rtf:.1f}x rt)")
+        print(
+            f"  generated {fmt_time(audio_s)} of audio in {fmt_time(synth_s)} ({synth_rtf:.1f}x rt)"
+        )
     else:
         print(f"  reused {fmt_time(audio_s)} of audio (no resynth)")
     print(f"  transcribed in {fmt_time(trans_s)} ({trans_rtf:.1f}x rt)")

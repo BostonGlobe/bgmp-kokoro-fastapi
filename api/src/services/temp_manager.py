@@ -37,7 +37,9 @@ async def cleanup_temp_files() -> None:
         # 1. They're too old
         # 2. We have too many files
         # 3. Directory is too large
-        current_time = (await aiofiles.os.stat(settings.temp_file_dir)).st_mtime
+        current_time = (
+            await aiofiles.os.stat(settings.temp_file_dir)
+        ).st_mtime
         max_age = settings.max_temp_dir_age_hours * 3600
 
         for path, mtime, size in files:
@@ -73,7 +75,9 @@ async def cleanup_temp_files() -> None:
 class TempFileWriter:
     """Handles writing audio chunks to a temp file"""
 
-    def __init__(self, format: str, product: str = "bgmp", article_id: str = None):
+    def __init__(
+        self, format: str, product: str = "bgmp", article_id: str = None
+    ):
         """Initialize temp file writer
 
         Args:
@@ -98,18 +102,24 @@ class TempFileWriter:
             # Create temp file with proper extension
             self.temp_path = f"{settings.temp_file_dir}/{self.product}/{self.article_id}.{self.format}"
 
-            await aiofiles.os.makedirs(os.path.dirname(self.temp_path), exist_ok=True)
+            await aiofiles.os.makedirs(
+                os.path.dirname(self.temp_path), exist_ok=True
+            )
             self.temp_file = await aiofiles.open(self.temp_path, mode="wb")
 
             # Generate download path immediately
-            self.download_path = f"/download/{self.product}/{self.article_id}.{self.format}"
+            self.download_path = (
+                f"/download/{self.product}/{self.article_id}.{self.format}"
+            )
         except Exception as e:
             # Handle permission issues or other errors gracefully
             logger.error(f"Failed to create temp file: {e}")
             self._write_error = True
             # Set a placeholder path so the API can still function
             self.temp_path = f"unavailable_{self.format}"
-            self.download_path = f"/download/{self.product}/{self.article_id}.{self.format}"
+            self.download_path = (
+                f"/download/{self.product}/{self.article_id}.{self.format}"
+            )
 
         return self
 

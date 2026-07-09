@@ -22,7 +22,9 @@ from collections.abc import Iterator
 import httpx
 import pytest
 
-SERVER_READY_TIMEOUT = float(os.environ.get("KOKORO_SERVER_READY_TIMEOUT", "120"))
+SERVER_READY_TIMEOUT = float(
+    os.environ.get("KOKORO_SERVER_READY_TIMEOUT", "120")
+)
 HEALTH_POLL_INTERVAL = 1.0
 
 

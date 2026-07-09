@@ -28,7 +28,9 @@ class Settings(BaseSettings):
 
     # Application Settings
     output_dir: str = "output"
-    output_dir_size_limit_mb: float = 500.0  # Maximum size of output directory in MB
+    output_dir_size_limit_mb: float = (
+        500.0  # Maximum size of output directory in MB
+    )
     default_voice: str = "af_heart"
     default_voice_code: str | None = (
         None  # If set, overrides the first letter of voice name, though api call param still takes precedence
@@ -52,7 +54,9 @@ class Settings(BaseSettings):
     target_min_tokens: int = 175  # Target minimum tokens per chunk
     target_max_tokens: int = 250  # Target maximum tokens per chunk
     absolute_max_tokens: int = 450  # Absolute maximum tokens per chunk
-    advanced_text_normalization: bool = True  # Preproesses the text before misiki
+    advanced_text_normalization: bool = (
+        True  # Preproesses the text before misiki
+    )
     voice_weight_normalization: bool = (
         True  # Normalize the voice weights so they add up to 1
     )
@@ -60,7 +64,9 @@ class Settings(BaseSettings):
     gap_trim_ms: int = (
         1  # Base amount to trim from streaming chunk ends in milliseconds
     )
-    dynamic_gap_trim_padding_ms: int = 410  # Padding to add to dynamic gap trim
+    dynamic_gap_trim_padding_ms: int = (
+        410  # Padding to add to dynamic gap trim
+    )
     dynamic_gap_trim_padding_char_multiplier: dict[str, float] = {
         ".": 1,
         "!": 0.9,
@@ -75,11 +81,12 @@ class Settings(BaseSettings):
     cors_enabled: bool = True  # Whether to enable CORS
 
     # Temp File Settings for WEB Ui
-    temp_file_dir: str = "output"  # Directory for temporary audio files (relative to project root)
+    temp_file_dir: str = (
+        "output"  # Directory for temporary audio files (relative to project root)
+    )
     max_temp_dir_size_mb: int = 2048  # Maximum size of temp directory (2GB)
     max_temp_dir_age_hours: int = 1  # Remove temp files older than 1 hour
     max_temp_dir_count: int = 3  # Maximum number of temp files to keep
-
 
     class Config:
         env_file = ".env"

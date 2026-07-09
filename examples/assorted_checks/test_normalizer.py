@@ -83,7 +83,9 @@ class TextNormalizerInline:
         text = re.sub(r"(?<=[BCDFGHJ-NP-TV-Z])'?s\b", "'S", text)
         text = re.sub(r"(?<=X')S\b", "s", text)
         text = re.sub(
-            r"(?:[A-Za-z]\.){2,} [a-z]", lambda m: m.group().replace(".", "-"), text
+            r"(?:[A-Za-z]\.){2,} [a-z]",
+            lambda m: m.group().replace(".", "-"),
+            text,
         )
         text = re.sub(r"(?i)(?<=[A-Z])\.(?=[A-Z])", "-", text)
 

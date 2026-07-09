@@ -66,9 +66,9 @@ async def test_convert_to_mp3(sample_audio):
     assert isinstance(audio_chunk, AudioChunk)
     assert len(audio_chunk.output) > 0
     # Check MP3 header (ID3 or MPEG frame sync)
-    assert audio_chunk.output.startswith(b"ID3") or audio_chunk.output.startswith(
-        b"\xff\xfb"
-    )
+    assert audio_chunk.output.startswith(
+        b"ID3"
+    ) or audio_chunk.output.startswith(b"\xff\xfb")
 
 
 @pytest.mark.asyncio
@@ -129,9 +129,9 @@ async def test_convert_to_aac(sample_audio):
     assert isinstance(audio_chunk, AudioChunk)
     assert len(audio_chunk.output) > 0
     # Check ADTS header (AAC)
-    assert audio_chunk.output.startswith(b"\xff\xf0") or audio_chunk.output.startswith(
-        b"\xff\xf1"
-    )
+    assert audio_chunk.output.startswith(
+        b"\xff\xf0"
+    ) or audio_chunk.output.startswith(b"\xff\xf1")
 
 
 @pytest.mark.asyncio
@@ -208,7 +208,9 @@ async def test_invalid_audio_data():
     writer = StreamingAudioWriter("wav", sample_rate=24000)
 
     with pytest.raises(ValueError):
-        await AudioService.convert_audio(invalid_audio, sample_rate, "wav", writer)
+        await AudioService.convert_audio(
+            invalid_audio, sample_rate, "wav", writer
+        )
 
 
 @pytest.mark.asyncio

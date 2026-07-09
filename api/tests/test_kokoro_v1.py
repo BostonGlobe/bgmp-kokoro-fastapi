@@ -64,7 +64,9 @@ def test_unload_with_pipelines(kokoro_backend):
     assert not kokoro_backend.is_loaded
     assert kokoro_backend._model is None
     assert kokoro_backend._pipelines == {}  # All pipelines should be cleared
-    assert kokoro_backend._voice_cache == {}  # Voice tensors should be released
+    assert (
+        kokoro_backend._voice_cache == {}
+    )  # Voice tensors should be released
 
 
 @pytest.mark.asyncio
@@ -79,7 +81,9 @@ async def test_generate_validation(kokoro_backend):
 async def test_generate_from_tokens_validation(kokoro_backend):
     """Test token generation validation."""
     with pytest.raises(RuntimeError, match="Model not loaded"):
-        async for _ in kokoro_backend.generate_from_tokens("test tokens", "voice"):
+        async for _ in kokoro_backend.generate_from_tokens(
+            "test tokens", "voice"
+        ):
             pass
 
 
@@ -98,7 +102,9 @@ def test_get_pipeline_creates_new(kokoro_backend):
 
         # Should create new pipeline with correct params
         mock_kpipeline.assert_called_once_with(
-            lang_code="e", model=kokoro_backend._model, device=kokoro_backend._device
+            lang_code="e",
+            model=kokoro_backend._model,
+            device=kokoro_backend._device,
         )
         assert pipeline_e == mock_pipeline
         assert kokoro_backend._pipelines["e"] == mock_pipeline
@@ -140,9 +146,13 @@ async def test_generate_uses_correct_pipeline(kokoro_backend):
         # Mock KPipeline
         mock_pipeline = MagicMock()
         mock_pipeline.return_value = iter([])  # Empty generator for testing
-        with patch("api.src.inference.kokoro_v1.KPipeline", return_value=mock_pipeline):
+        with patch(
+            "api.src.inference.kokoro_v1.KPipeline", return_value=mock_pipeline
+        ):
             # Generate with Spanish voice and explicit lang_code
-            async for _ in kokoro_backend.generate("test", "ef_voice", lang_code="e"):
+            async for _ in kokoro_backend.generate(
+                "test", "ef_voice", lang_code="e"
+            ):
                 pass
 
             # Should create pipeline with Spanish lang_code and call it.

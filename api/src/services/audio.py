@@ -24,7 +24,9 @@ class AudioNormalizer:
     def __init__(self):
         self.chunk_trim_ms = settings.gap_trim_ms
         self.sample_rate = 24000  # Sample rate of the audio
-        self.samples_to_trim = int(self.chunk_trim_ms * self.sample_rate / 1000)
+        self.samples_to_trim = int(
+            self.chunk_trim_ms * self.sample_rate / 1000
+        )
         self.samples_to_pad_start = int(50 * self.sample_rate / 1000)
 
     def find_first_last_non_silent(
@@ -52,10 +54,15 @@ class AudioNormalizer:
         split_character = chunk_text.strip()
         if len(split_character) > 0:
             split_character = split_character[-1]
-            if split_character in settings.dynamic_gap_trim_padding_char_multiplier:
-                pad_multiplier = settings.dynamic_gap_trim_padding_char_multiplier[
-                    split_character
-                ]
+            if (
+                split_character
+                in settings.dynamic_gap_trim_padding_char_multiplier
+            ):
+                pad_multiplier = (
+                    settings.dynamic_gap_trim_padding_char_multiplier[
+                        split_character
+                    ]
+                )
 
         if not is_last_chunk:
             samples_to_pad_end = max(
@@ -195,7 +202,9 @@ class AudioService:
             return audio_chunk
 
         except Exception as e:
-            logger.error(f"Error converting audio stream to {output_format}: {str(e)}")
+            logger.error(
+                f"Error converting audio stream to {output_format}: {str(e)}"
+            )
             raise ValueError(
                 f"Failed to convert audio stream to {output_format}: {str(e)}"
             )

@@ -11,7 +11,14 @@ from urllib import response
 import aiofiles
 import numpy as np
 import torch
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+)
 from fastapi.responses import FileResponse, StreamingResponse
 from loguru import logger
 
@@ -192,7 +199,9 @@ async def create_speech(
     try:
         # model_name = get_model_name(request.model)
         tts_service = await get_tts_service()
-        voice_name = await process_and_validate_voices(request.voice, tts_service)
+        voice_name = await process_and_validate_voices(
+            request.voice, tts_service
+        )
 
         # Set content type based on format
         content_type = {
@@ -204,7 +213,9 @@ async def create_speech(
             "pcm": "audio/pcm",
         }.get(request.response_format, f"audio/{request.response_format}")
 
-        writer = StreamingAudioWriter(request.response_format, sample_rate=24000)
+        writer = StreamingAudioWriter(
+            request.response_format, sample_rate=24000
+        )
 
         # Check if streaming is requested (default for OpenAI client)
         if request.stream:
@@ -218,8 +229,12 @@ async def create_speech(
                 from ..services.temp_manager import TempFileWriter
 
                 # Use download_format if specified, otherwise use response_format
-                output_format = request.download_format or request.response_format
-                temp_writer = TempFileWriter(output_format, request.product, request.article_id)
+                output_format = (
+                    request.download_format or request.response_format
+                )
+                temp_writer = TempFileWriter(
+                    output_format, request.product, request.article_id
+                )
                 await temp_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
@@ -254,7 +269,9 @@ async def create_speech(
                         await temp_writer.finalize()
                     except Exception as e:
                         logger.error(f"Error in dual output streaming: {e}")
-                        await temp_writer.__aexit__(type(e), e, e.__traceback__)
+                        await temp_writer.__aexit__(
+                            type(e), e, e.__traceback__
+                        )
                         raise
                     finally:
                         # Ensure temp writer is closed
@@ -327,7 +344,9 @@ async def create_speech(
                 from ..services.temp_manager import TempFileWriter
 
                 # Use download_format if specified, otherwise use response_format
-                output_format = request.download_format or request.response_format
+                output_format = (
+                    request.download_format or request.response_format
+                )
                 temp_writer = TempFileWriter(output_format)
                 await temp_writer.__aenter__()  # Initialize temp file
 
@@ -419,7 +438,8 @@ async def download_audio_file(filename: str, product: str = "bgmp"):
 
         # Search for file in temp directory
         file_path = await _find_file(
-            filename=filename, search_paths=[f"{settings.temp_file_dir}/{product}"]
+            filename=filename,
+            search_paths=[f"{settings.temp_file_dir}/{product}"],
         )
 
         # Get content type from path helper

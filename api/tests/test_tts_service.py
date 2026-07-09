@@ -22,8 +22,12 @@ def mock_managers():
         voice_manager.list_voices.return_value = ["voice1", "voice2"]
 
         with (
-            patch("api.src.services.tts_service.get_model_manager") as mock_get_model,
-            patch("api.src.services.tts_service.get_voice_manager") as mock_get_voice,
+            patch(
+                "api.src.services.tts_service.get_model_manager"
+            ) as mock_get_model,
+            patch(
+                "api.src.services.tts_service.get_voice_manager"
+            ) as mock_get_voice,
         ):
             mock_get_model.return_value = model_manager
             mock_get_voice.return_value = voice_manager
@@ -49,8 +53,12 @@ async def test_service_creation():
     voice_manager = AsyncMock()
 
     with (
-        patch("api.src.services.tts_service.get_model_manager") as mock_get_model,
-        patch("api.src.services.tts_service.get_voice_manager") as mock_get_voice,
+        patch(
+            "api.src.services.tts_service.get_model_manager"
+        ) as mock_get_model,
+        patch(
+            "api.src.services.tts_service.get_voice_manager"
+        ) as mock_get_voice,
     ):
         mock_get_model.return_value = model_manager
         mock_get_voice.return_value = voice_manager
@@ -69,8 +77,12 @@ async def test_get_voice_path_single():
     voice_manager.get_voice_path.return_value = "/path/to/voice1.pt"
 
     with (
-        patch("api.src.services.tts_service.get_model_manager") as mock_get_model,
-        patch("api.src.services.tts_service.get_voice_manager") as mock_get_voice,
+        patch(
+            "api.src.services.tts_service.get_model_manager"
+        ) as mock_get_model,
+        patch(
+            "api.src.services.tts_service.get_voice_manager"
+        ) as mock_get_voice,
     ):
         mock_get_model.return_value = model_manager
         mock_get_voice.return_value = voice_manager
@@ -90,8 +102,12 @@ async def test_get_voice_path_combined():
     voice_manager.get_voice_path.return_value = "/path/to/voice.pt"
 
     with (
-        patch("api.src.services.tts_service.get_model_manager") as mock_get_model,
-        patch("api.src.services.tts_service.get_voice_manager") as mock_get_voice,
+        patch(
+            "api.src.services.tts_service.get_model_manager"
+        ) as mock_get_model,
+        patch(
+            "api.src.services.tts_service.get_voice_manager"
+        ) as mock_get_voice,
         patch("torch.load") as mock_load,
         patch("torch.save") as mock_save,
         patch("tempfile.gettempdir") as mock_temp,
@@ -119,8 +135,12 @@ async def test_list_voices():
     voice_manager.list_voices.return_value = ["voice1", "voice2"]
 
     with (
-        patch("api.src.services.tts_service.get_model_manager") as mock_get_model,
-        patch("api.src.services.tts_service.get_voice_manager") as mock_get_voice,
+        patch(
+            "api.src.services.tts_service.get_model_manager"
+        ) as mock_get_model,
+        patch(
+            "api.src.services.tts_service.get_voice_manager"
+        ) as mock_get_voice,
     ):
         mock_get_model.return_value = model_manager
         mock_get_voice.return_value = voice_manager

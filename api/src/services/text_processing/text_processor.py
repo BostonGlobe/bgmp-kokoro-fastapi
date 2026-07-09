@@ -104,7 +104,9 @@ def get_sentence_info(
 ) -> List[Tuple[str, List[int], int]]:
     """Process all sentences and return info"""
     # Detect Chinese text
-    is_chinese = lang_code.startswith("z") or re.search(r"[\u4e00-\u9fff]", text)
+    is_chinese = lang_code.startswith("z") or re.search(
+        r"[\u4e00-\u9fff]", text
+    )
     if is_chinese:
         # Split using Chinese punctuation
         sentences = re.split(r"([，。！？；])+", text)
@@ -127,7 +129,9 @@ def get_sentence_info(
     return results
 
 
-def handle_custom_phonemes(s: re.Match[str], phenomes_list: Dict[str, str]) -> str:
+def handle_custom_phonemes(
+    s: re.Match[str], phenomes_list: Dict[str, str]
+) -> str:
     latest_id = f"</|custom_phonemes_{len(phenomes_list)}|/>"
     phenomes_list[latest_id] = s.group(0).strip()
     return latest_id
@@ -169,13 +173,19 @@ async def smart_split(
 
             # Normalize text (original logic)
             processed_text = text_part_raw
-            if settings.advanced_text_normalization and normalization_options.normalize:
+            if (
+                settings.advanced_text_normalization
+                and normalization_options.normalize
+            ):
                 if lang_code in ["a", "b", "en-us", "en-gb"]:
                     if normalization_options.pronunciation_normalization:
                         logger.debug(
                             "Pronunciation normalization is enabled. Applying normalization."
                         )
-                        processed_text = handle_pronunciations(processed_text, normalization_options.pronunciation_dictionary)
+                        processed_text = handle_pronunciations(
+                            processed_text,
+                            normalization_options.pronunciation_dictionary,
+                        )
                     processed_text = CUSTOM_PHONEMES.split(processed_text)
                     for index in range(0, len(processed_text), 2):
                         processed_text[index] = normalize_text(
@@ -231,7 +241,8 @@ async def smart_split(
                         # If adding clause keeps us under max and not optimal yet
                         if (
                             clause_count + count <= max_tokens
-                            and clause_count + count <= settings.target_max_tokens
+                            and clause_count + count
+                            <= settings.target_max_tokens
                         ):
                             clause_chunk.append(full_clause)
                             clause_tokens.extend(tokens)
@@ -315,12 +326,16 @@ async def smart_split(
             duration_str = parts[part_idx]
             # Check if it looks like a valid number string captured by the regex group
             if re.fullmatch(r"\d+(?:\.\d+)?", duration_str):
-                part_idx += 1  # Consume the duration string as it's been processed
+                part_idx += (
+                    1  # Consume the duration string as it's been processed
+                )
                 try:
                     duration = float(duration_str)
                     if duration > 0:
                         chunk_count += 1
-                        logger.info(f"Yielding pause chunk {chunk_count}: {duration}s")
+                        logger.info(
+                            f"Yielding pause chunk {chunk_count}: {duration}s"
+                        )
                         yield "", [], duration  # Yield pause chunk
                 except (ValueError, TypeError):
                     # This case should be rare if re.fullmatch passed, but handle anyway

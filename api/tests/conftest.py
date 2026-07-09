@@ -39,7 +39,9 @@ async def mock_model_manager(mock_audio_output):
 
     async def mock_generate(*args, **kwargs):
         # Simulate successful audio generation
-        return np.random.rand(24000).astype(np.float32)  # 1 second of random audio data
+        return np.random.rand(24000).astype(
+            np.float32
+        )  # 1 second of random audio data
 
     manager.generate = AsyncMock(side_effect=mock_generate)
     return manager

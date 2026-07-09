@@ -62,7 +62,9 @@ last_chunks = {
 print(f"CUTTING TO {last_chunks['word']}")
 
 audioseg = pydub.AudioSegment.from_file(f"outputstream.{Type}", format=Type)
-audioseg = audioseg[last_chunks["start_time"] * 1000 : last_chunks["end_time"] * 1000]
+audioseg = audioseg[
+    last_chunks["start_time"] * 1000 : last_chunks["end_time"] * 1000
+]
 audioseg.export(f"outputstreamcut.{Type}", format=Type)
 
 

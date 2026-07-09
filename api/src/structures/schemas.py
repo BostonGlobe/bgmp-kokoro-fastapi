@@ -34,8 +34,12 @@ class WordTimestamp(BaseModel):
 class CaptionedSpeechResponse(BaseModel):
     """Response schema for captioned speech endpoint"""
 
-    audio: str = Field(..., description="The generated audio data encoded in base 64")
-    audio_format: str = Field(..., description="The format of the output audio")
+    audio: str = Field(
+        ..., description="The generated audio data encoded in base 64"
+    )
+    audio_format: str = Field(
+        ..., description="The format of the output audio"
+    )
     timestamps: Optional[List[WordTimestamp]] = Field(
         ..., description="Word-level timestamps"
     )
@@ -107,6 +111,7 @@ class NormalizationOptions(BaseModel):
 
 class OpenAISpeechRequest(BaseModel):
     """Request schema for OpenAI-compatible speech endpoint"""
+
     product: str = Field(
         default="bgmp",
         description="The product name for the request. Default is 'bgmp'.",
@@ -124,15 +129,17 @@ class OpenAISpeechRequest(BaseModel):
         default="af_heart",
         description="The voice to use for generation. Can be a base voice or a combined voice name.",
     )
-    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = Field(
-        default="mp3",
-        description="The format to return audio in. Supported formats: mp3, opus, flac, wav, pcm. PCM format returns raw 16-bit samples without headers. AAC is not currently supported.",
-    )
-    download_format: Optional[Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]] = (
+    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = (
         Field(
-            default=None,
-            description="Optional different format for the final download. If not provided, uses response_format.",
+            default="mp3",
+            description="The format to return audio in. Supported formats: mp3, opus, flac, wav, pcm. PCM format returns raw 16-bit samples without headers. AAC is not currently supported.",
         )
+    )
+    download_format: Optional[
+        Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]
+    ] = Field(
+        default=None,
+        description="Optional different format for the final download. If not provided, uses response_format.",
     )
     speed: float = Field(
         default=1.0,
@@ -153,7 +160,8 @@ class OpenAISpeechRequest(BaseModel):
         description="Optional language code to use for text processing. If not provided, will use first letter of voice name.",
     )
     volume_multiplier: Optional[float] = Field(
-        default=1.0, description="A volume multiplier to multiply the output audio by."
+        default=1.0,
+        description="A volume multiplier to multiply the output audio by.",
     )
     normalization_options: Optional[NormalizationOptions] = Field(
         default=NormalizationOptions(),
@@ -173,9 +181,11 @@ class CaptionedSpeechRequest(BaseModel):
         default="af_heart",
         description="The voice to use for generation. Can be a base voice or a combined voice name.",
     )
-    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = Field(
-        default="mp3",
-        description="The format to return audio in. Supported formats: mp3, opus, flac, wav, pcm. PCM format returns raw 16-bit samples without headers. AAC is not currently supported.",
+    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = (
+        Field(
+            default="mp3",
+            description="The format to return audio in. Supported formats: mp3, opus, flac, wav, pcm. PCM format returns raw 16-bit samples without headers. AAC is not currently supported.",
+        )
     )
     speed: float = Field(
         default=1.0,
@@ -200,7 +210,8 @@ class CaptionedSpeechRequest(BaseModel):
         description="Optional language code to use for text processing. If not provided, will use first letter of voice name.",
     )
     volume_multiplier: Optional[float] = Field(
-        default=1.0, description="A volume multiplier to multiply the output audio by."
+        default=1.0,
+        description="A volume multiplier to multiply the output audio by.",
     )
     normalization_options: Optional[NormalizationOptions] = Field(
         default=NormalizationOptions(),

@@ -33,9 +33,13 @@ def extract_dependency_info():
             break
 
     if not kokoro_found:
-        raise ValueError("Kokoro version not found in pyproject.toml dependencies")
+        raise ValueError(
+            "Kokoro version not found in pyproject.toml dependencies"
+        )
     if not misaki_found:
-        raise ValueError("Misaki version not found in pyproject.toml dependencies")
+        raise ValueError(
+            "Misaki version not found in pyproject.toml dependencies"
+        )
 
     return info
 
@@ -45,7 +49,10 @@ def run_pytest_with_coverage():
     try:
         # Run pytest with coverage
         result = subprocess.run(
-            ["pytest", "--cov=api", "-v"], capture_output=True, text=True, check=True
+            ["pytest", "--cov=api", "-v"],
+            capture_output=True,
+            text=True,
+            check=True,
         )
 
         # Extract test results
@@ -58,8 +65,12 @@ def run_pytest_with_coverage():
         ).stdout
 
         # Extract total coverage percentage
-        coverage_match = re.search(r"TOTAL\s+\d+\s+\d+\s+(\d+)%", coverage_output)
-        coverage_percentage = coverage_match.group(1) if coverage_match else "0"
+        coverage_match = re.search(
+            r"TOTAL\s+\d+\s+\d+\s+(\d+)%", coverage_output
+        )
+        coverage_percentage = (
+            coverage_match.group(1) if coverage_match else "0"
+        )
 
         return passed_tests, coverage_percentage
     except subprocess.CalledProcessError as e:

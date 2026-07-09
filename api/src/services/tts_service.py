@@ -68,7 +68,9 @@ class TTSService:
                 if is_last:
                     # Skip format conversion for raw audio mode
                     if not output_format:
-                        yield AudioChunk(np.array([], dtype=np.int16), output=b"")
+                        yield AudioChunk(
+                            np.array([], dtype=np.int16), output=b""
+                        )
                         return
                     chunk_data = await AudioService.convert_audio(
                         AudioChunk(
@@ -117,10 +119,16 @@ class TTSService:
                                 )
                                 yield chunk_data
                             except Exception as e:
-                                logger.error(f"Failed to convert audio: {str(e)}")
+                                logger.error(
+                                    f"Failed to convert audio: {str(e)}"
+                                )
                         else:
                             chunk_data = AudioService.trim_audio(
-                                chunk_data, chunk_text, speed, is_last, normalizer
+                                chunk_data,
+                                chunk_text,
+                                speed,
+                                is_last,
+                                normalizer,
                             )
                             yield chunk_data
                         chunk_index += 1
@@ -212,7 +220,9 @@ class TTSService:
 
                 if "(" in voice_object and ")" in voice_object:
                     voice_name = voice_object.split("(")[0].strip()
-                    voice_weight = float(voice_object.split("(")[1].split(")")[0])
+                    voice_weight = float(
+                        voice_object.split("(")[1].split(")")[0]
+                    )
                 else:
                     voice_name = voice_object
                     voice_weight = 1
@@ -265,7 +275,9 @@ class TTSService:
         output_format: str = "wav",
         lang_code: Optional[str] = None,
         volume_multiplier: Optional[float] = 1.0,
-        normalization_options: Optional[NormalizationOptions] = NormalizationOptions(),
+        normalization_options: Optional[
+            NormalizationOptions
+        ] = NormalizationOptions(),
         return_timestamps: Optional[bool] = False,
     ) -> AsyncGenerator[AudioChunk, None]:
         """Generate and stream audio chunks."""
@@ -295,27 +307,33 @@ class TTSService:
                 if pause_duration_s is not None and pause_duration_s > 0:
                     # --- Handle Pause Chunk ---
                     try:
-                        logger.debug(f"Generating {pause_duration_s}s silence chunk")
+                        logger.debug(
+                            f"Generating {pause_duration_s}s silence chunk"
+                        )
                         silence_samples = int(
                             pause_duration_s * 24000
                         )  # 24kHz sample rate
                         # Create proper silence as int16 zeros to avoid normalization artifacts
-                        silence_audio = np.zeros(silence_samples, dtype=np.int16)
+                        silence_audio = np.zeros(
+                            silence_samples, dtype=np.int16
+                        )
                         pause_chunk = AudioChunk(
                             audio=silence_audio, word_timestamps=[]
                         )  # Empty timestamps for silence
 
                         # Format and yield the silence chunk
                         if output_format:
-                            formatted_pause_chunk = await AudioService.convert_audio(
-                                pause_chunk,
-                                output_format,
-                                writer,
-                                speed=speed,
-                                chunk_text="",
-                                is_last_chunk=False,
-                                trim_audio=False,
-                                normalizer=stream_normalizer,
+                            formatted_pause_chunk = (
+                                await AudioService.convert_audio(
+                                    pause_chunk,
+                                    output_format,
+                                    writer,
+                                    speed=speed,
+                                    chunk_text="",
+                                    is_last_chunk=False,
+                                    trim_audio=False,
+                                    normalizer=stream_normalizer,
+                                )
                             )
                             if formatted_pause_chunk.output:
                                 yield formatted_pause_chunk
@@ -330,7 +348,9 @@ class TTSService:
                         chunk_index += 1  # Count pause as a yielded chunk
 
                     except Exception as e:
-                        logger.error(f"Failed to process pause chunk: {str(e)}")
+                        logger.error(
+                            f"Failed to process pause chunk: {str(e)}"
+                        )
                         continue
 
                 elif (
@@ -381,7 +401,9 @@ class TTSService:
                                     f"No audio generated for chunk: '{chunk_text[:100]}...'"
                                 )
 
-                        chunk_index += 1  # Increment chunk index after processing text
+                        chunk_index += (
+                            1  # Increment chunk index after processing text
+                        )
                     except Exception as e:
                         logger.error(
                             f"Failed to process audio for chunk: '{chunk_text[:100]}...'. Error: {str(e)}"
@@ -423,7 +445,9 @@ class TTSService:
         speed: float = 1.0,
         return_timestamps: bool = False,
         volume_multiplier: Optional[float] = 1.0,
-        normalization_options: Optional[NormalizationOptions] = NormalizationOptions(),
+        normalization_options: Optional[
+            NormalizationOptions
+        ] = NormalizationOptions(),
         lang_code: Optional[str] = None,
     ) -> AudioChunk:
         """Generate complete audio for text using streaming internally."""
@@ -491,7 +515,9 @@ class TTSService:
                 # For Kokoro V1, use generate_from_tokens with raw phonemes
                 result = None
                 # Use provided lang_code or determine from voice name
-                pipeline_lang_code = lang_code if lang_code else voice[:1].lower()
+                pipeline_lang_code = (
+                    lang_code if lang_code else voice[:1].lower()
+                )
                 logger.info(
                     f"Using lang_code '{pipeline_lang_code}' for voice '{voice_name}' in phoneme pipeline"
                 )

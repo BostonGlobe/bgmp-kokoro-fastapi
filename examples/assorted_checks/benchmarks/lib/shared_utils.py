@@ -19,7 +19,9 @@ except ImportError:
     pass
 
 
-def check_audio_file_is_silent(audio_path: str, threshold: float = 0.01) -> bool:
+def check_audio_file_is_silent(
+    audio_path: str, threshold: float = 0.01
+) -> bool:
     """Check if an audio file is silent by comparing peak amplitude to a threshold.
 
     Args:
@@ -30,7 +32,9 @@ def check_audio_file_is_silent(audio_path: str, threshold: float = 0.01) -> bool
         bool: True if audio is silent, False otherwise
     """
     rate, data = wavfile.read(audio_path)
-    peak_amplitude = max(abs(data.min()), abs(data.max())) / 32768.0  # 16-bit audio
+    peak_amplitude = (
+        max(abs(data.min()), abs(data.max())) / 32768.0
+    )  # 16-bit audio
 
     return peak_amplitude < threshold
 
@@ -64,7 +68,9 @@ def get_audio_length(audio_data: bytes, temp_dir: str = None) -> float:
             os.remove(temp_path)
 
 
-def get_gpu_memory(average: bool = True) -> Optional[Union[float, List[float]]]:
+def get_gpu_memory(
+    average: bool = True,
+) -> Optional[Union[float, List[float]]]:
     """Get GPU memory usage using PyTorch if available, falling back to nvidia-smi.
 
     Args:
@@ -90,10 +96,16 @@ def get_gpu_memory(average: bool = True) -> Optional[Union[float, List[float]]]:
     # Fall back to nvidia-smi
     try:
         result = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=memory.used", "--format=csv,nounits,noheader"]
+            [
+                "nvidia-smi",
+                "--query-gpu=memory.used",
+                "--format=csv,nounits,noheader",
+            ]
         )
         memory_values = [
-            float(x.strip()) for x in result.decode("utf-8").split("\n") if x.strip()
+            float(x.strip())
+            for x in result.decode("utf-8").split("\n")
+            if x.strip()
         ]
 
         if average and len(memory_values) > 0:
@@ -127,7 +139,9 @@ def get_system_metrics() -> Dict[str, Union[str, float]]:
     return metrics
 
 
-def save_audio_file(audio_data: bytes, identifier: str, output_dir: str) -> str:
+def save_audio_file(
+    audio_data: bytes, identifier: str, output_dir: str
+) -> str:
     """Save audio data to a file with proper naming and directory creation.
 
     Args:
@@ -147,7 +161,9 @@ def save_audio_file(audio_data: bytes, identifier: str, output_dir: str) -> str:
     return output_file
 
 
-def write_benchmark_stats(stats: List[Dict[str, Any]], output_file: str) -> None:
+def write_benchmark_stats(
+    stats: List[Dict[str, Any]], output_file: str
+) -> None:
     """Write benchmark statistics to a file in a clean, organized format.
 
     Args:

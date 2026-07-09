@@ -71,8 +71,12 @@ def validate_directory(directory: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Batch validate TTS wav files")
-    parser.add_argument("directory", help="Directory containing wav files to validate")
+    parser = argparse.ArgumentParser(
+        description="Batch validate TTS wav files"
+    )
+    parser.add_argument(
+        "directory", help="Directory containing wav files to validate"
+    )
     args = parser.parse_args()
 
     validate_directory(args.directory)

@@ -42,7 +42,9 @@ async def _find_file(
             if filter_fn is None or filter_fn(full_path):
                 return full_path
 
-    raise FileNotFoundError(f"File not found: {filename} in paths: {search_paths}")
+    raise FileNotFoundError(
+        f"File not found: {filename} in paths: {search_paths}"
+    )
 
 
 async def _scan_directories(
@@ -179,10 +181,14 @@ async def load_voice_tensor(
         async with aiofiles.open(voice_path, "rb") as f:
             data = await f.read()
             return torch.load(
-                io.BytesIO(data), map_location=device, weights_only=weights_only
+                io.BytesIO(data),
+                map_location=device,
+                weights_only=weights_only,
             )
     except Exception as e:
-        raise RuntimeError(f"Failed to load voice tensor from {voice_path}: {e}")
+        raise RuntimeError(
+            f"Failed to load voice tensor from {voice_path}: {e}"
+        )
 
 
 async def save_voice_tensor(tensor: torch.Tensor, voice_path: str) -> None:
@@ -240,7 +246,9 @@ async def load_model_weights(path: str, device: str = "cpu") -> dict:
     try:
         async with aiofiles.open(path, "rb") as f:
             data = await f.read()
-            return torch.load(io.BytesIO(data), map_location=device, weights_only=True)
+            return torch.load(
+                io.BytesIO(data), map_location=device, weights_only=True
+            )
     except Exception as e:
         raise RuntimeError(f"Failed to load model weights from {path}: {e}")
 

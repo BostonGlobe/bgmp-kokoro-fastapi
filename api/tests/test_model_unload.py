@@ -20,6 +20,7 @@ client = TestClient(app)
 @contextmanager
 def override_tts_service(service):
     """Override the get_tts_service FastAPI dependency for the duration of the block."""
+
     async def _override():
         return service
 
@@ -138,11 +139,17 @@ async def test_generate_lazy_reinit_when_backend_none():
         manager._backend = mock_backend
 
     with (
-        patch.object(manager, "initialize", side_effect=fake_initialize) as mock_init,
-        patch.object(manager, "load_model", new_callable=AsyncMock) as mock_load,
+        patch.object(
+            manager, "initialize", side_effect=fake_initialize
+        ) as mock_init,
+        patch.object(
+            manager, "load_model", new_callable=AsyncMock
+        ) as mock_load,
     ):
         chunks = []
-        async for chunk in manager.generate("hello", ("voice", "/path/voice.pt")):
+        async for chunk in manager.generate(
+            "hello", ("voice", "/path/voice.pt")
+        ):
             chunks.append(chunk)
 
     mock_init.assert_called_once()
@@ -165,11 +172,17 @@ async def test_generate_skips_reinit_when_backend_set():
     manager._backend = mock_backend
 
     with (
-        patch.object(manager, "initialize", new_callable=AsyncMock) as mock_init,
-        patch.object(manager, "load_model", new_callable=AsyncMock) as mock_load,
+        patch.object(
+            manager, "initialize", new_callable=AsyncMock
+        ) as mock_init,
+        patch.object(
+            manager, "load_model", new_callable=AsyncMock
+        ) as mock_load,
     ):
         chunks = []
-        async for chunk in manager.generate("hello", ("voice", "/path/voice.pt")):
+        async for chunk in manager.generate(
+            "hello", ("voice", "/path/voice.pt")
+        ):
             chunks.append(chunk)
 
     mock_init.assert_not_called()
@@ -225,7 +238,9 @@ def test_unload_endpoint_503_when_manager_none():
         response = client.post("/dev/unload")
 
     assert response.status_code == 503
-    assert response.json()["detail"]["error"] == "Model manager not initialized"
+    assert (
+        response.json()["detail"]["error"] == "Model manager not initialized"
+    )
 
 
 def test_unload_endpoint_500_on_exception():

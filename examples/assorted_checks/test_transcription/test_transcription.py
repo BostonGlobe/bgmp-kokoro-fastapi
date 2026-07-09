@@ -36,24 +36,35 @@ from jiwer.transforms import (
     ToLowerCase,
 )
 
-
 # Whisper often writes small numbers as digits ("5") even when the prompt was
 # spelled out ("five"). Normalize both directions before computing WER so the
 # metric reflects pronunciation accuracy, not formatting.
 _DIGIT_WORDS = {
-    "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
-    "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
-    "10": "ten", "11": "eleven", "12": "twelve",
+    "0": "zero",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
+    "10": "ten",
+    "11": "eleven",
+    "12": "twelve",
 }
 
-_NORMALIZE = Compose([
-    ToLowerCase(),
-    RemovePunctuation(),
-    SubstituteWords(_DIGIT_WORDS),
-    RemoveMultipleSpaces(),
-    Strip(),
-    ReduceToListOfListOfWords(),
-])
+_NORMALIZE = Compose(
+    [
+        ToLowerCase(),
+        RemovePunctuation(),
+        SubstituteWords(_DIGIT_WORDS),
+        RemoveMultipleSpaces(),
+        Strip(),
+        ReduceToListOfListOfWords(),
+    ]
+)
 
 
 def _normalized_wer(reference: str, hypothesis: str) -> float:
@@ -77,6 +88,7 @@ def rel(path: Path) -> str:
     """Path relative to the script dir, posix-style."""
     return path.resolve().relative_to(SCRIPT_DIR.resolve()).as_posix()
 
+
 CASES: list[tuple[str, str]] = [
     ("af_heart", "The quick brown fox jumps over the lazy dog."),
     ("af_bella", "She sells seashells by the seashore."),
@@ -97,7 +109,9 @@ class Result:
     transcribe_seconds: float
 
 
-def synthesize(client: openai.OpenAI, voice: str, text: str, out_path: Path) -> float:
+def synthesize(
+    client: openai.OpenAI, voice: str, text: str, out_path: Path
+) -> float:
     start = time.perf_counter()
     response = client.audio.speech.create(
         model="tts-1",
@@ -166,7 +180,9 @@ def main() -> int:
 
     total = len(results)
     passed_count = sum(1 for r in results if r.passed)
-    print(f"Summary: {passed_count}/{total} passed. Report: {rel(report_path)}")
+    print(
+        f"Summary: {passed_count}/{total} passed. Report: {rel(report_path)}"
+    )
 
     return 0 if results and passed_count == total else 1
 

@@ -27,25 +27,37 @@ import requests
 
 def setup_args():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description="Test Kokoro TTS for race conditions")
+    parser = argparse.ArgumentParser(
+        description="Test Kokoro TTS for race conditions"
+    )
     parser.add_argument(
         "--url",
         default="http://localhost:8880",
         help="Base URL of the Kokoro TTS service",
     )
     parser.add_argument(
-        "--threads", type=int, default=8, help="Number of concurrent threads to use"
+        "--threads",
+        type=int,
+        default=8,
+        help="Number of concurrent threads to use",
     )
     parser.add_argument(
-        "--iterations", type=int, default=5, help="Number of iterations per thread"
+        "--iterations",
+        type=int,
+        default=5,
+        help="Number of iterations per thread",
     )
-    parser.add_argument("--voice", default="af_heart", help="Voice to use for TTS")
+    parser.add_argument(
+        "--voice", default="af_heart", help="Voice to use for TTS"
+    )
     parser.add_argument(
         "--output-dir",
         default="./tts_test_output",
         help="Directory to save output files",
     )
-    parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--debug", action="store_true", help="Enable debug logging"
+    )
     return parser.parse_args()
 
 
@@ -74,7 +86,9 @@ def request_tts(url, test_id, text, voice, output_dir, debug=False):
 
     # Log output paths for debugging
     log_message(f"Thread {test_id}: Text will be saved to: {text_file}", debug)
-    log_message(f"Thread {test_id}: Audio will be saved to: {output_file}", debug)
+    log_message(
+        f"Thread {test_id}: Audio will be saved to: {output_file}", debug
+    )
 
     # Save the text for later comparison
     try:
@@ -83,7 +97,9 @@ def request_tts(url, test_id, text, voice, output_dir, debug=False):
         log_message(f"Thread {test_id}: Successfully saved text file", debug)
     except Exception as e:
         log_message(
-            f"Thread {test_id}: Error saving text file: {str(e)}", debug, is_error=True
+            f"Thread {test_id}: Error saving text file: {str(e)}",
+            debug,
+            is_error=True,
         )
 
     # Make the TTS request
@@ -103,7 +119,8 @@ def request_tts(url, test_id, text, voice, output_dir, debug=False):
         )
 
         log_message(
-            f"Thread {test_id}: Response status code: {response.status_code}", debug
+            f"Thread {test_id}: Response status code: {response.status_code}",
+            debug,
         )
         log_message(
             f"Thread {test_id}: Response content type: {response.headers.get('Content-Type', 'None')}",
@@ -195,10 +212,14 @@ def request_tts(url, test_id, text, voice, output_dir, debug=False):
         return True
 
     except requests.exceptions.Timeout:
-        log_message(f"Thread {test_id}: Request timed out", debug, is_error=True)
+        log_message(
+            f"Thread {test_id}: Request timed out", debug, is_error=True
+        )
         return False
     except Exception as e:
-        log_message(f"Thread {test_id}: Exception: {str(e)}", debug, is_error=True)
+        log_message(
+            f"Thread {test_id}: Exception: {str(e)}", debug, is_error=True
+        )
         return False
 
 
@@ -249,7 +270,9 @@ def run_test(args):
     try:
         response = requests.get(f"{args.url}/health", timeout=5)
         if response.status_code == 200:
-            log_message(f"Successfully connected to Kokoro TTS service at {args.url}")
+            log_message(
+                f"Successfully connected to Kokoro TTS service at {args.url}"
+            )
         else:
             log_message(
                 f"Warning: Kokoro TTS service health check returned status {response.status_code}",
@@ -268,7 +291,9 @@ def run_test(args):
     )
 
     # Create and start worker threads
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=args.threads
+    ) as executor:
         futures = []
         for thread_id in range(1, args.threads + 1):
             futures.append(executor.submit(worker_task, thread_id, args))
@@ -279,7 +304,9 @@ def run_test(args):
                 future.result()
             except Exception as e:
                 log_message(
-                    f"Thread execution failed: {str(e)}", args.debug, is_error=True
+                    f"Thread execution failed: {str(e)}",
+                    args.debug,
+                    is_error=True,
                 )
 
     # Record end time and print summary
@@ -288,7 +315,9 @@ def run_test(args):
     total_requests = args.threads * args.iterations
     log_message(f"Test completed in {total_time:.2f} seconds")
     log_message(f"Total requests: {total_requests}")
-    log_message(f"Average time per request: {total_time / total_requests:.2f} seconds")
+    log_message(
+        f"Average time per request: {total_time / total_requests:.2f} seconds"
+    )
     log_message(f"Requests per second: {total_requests / total_time:.2f}")
     log_message(f"Output files saved to: {os.path.abspath(args.output_dir)}")
     log_message(
@@ -305,7 +334,9 @@ def analyze_audio_files(output_dir):
     wav_files = list(Path(output_dir).glob("*.wav"))
     txt_files = list(Path(output_dir).glob("*.txt"))
 
-    log_message(f"Found {len(wav_files)} WAV files and {len(txt_files)} TXT files")
+    log_message(
+        f"Found {len(wav_files)} WAV files and {len(txt_files)} TXT files"
+    )
 
     if len(wav_files) == 0:
         log_message(
@@ -334,10 +365,16 @@ def analyze_audio_files(output_dir):
                     text = "N/A"
 
                 file_stats.append(
-                    {"filename": wav_path.name, "duration": duration, "text": text}
+                    {
+                        "filename": wav_path.name,
+                        "duration": duration,
+                        "text": text,
+                    }
                 )
         except Exception as e:
-            log_message(f"Error analyzing {wav_path}: {str(e)}", False, is_error=True)
+            log_message(
+                f"Error analyzing {wav_path}: {str(e)}", False, is_error=True
+            )
 
     # Print summary table
     if file_stats:
@@ -350,16 +387,22 @@ def analyze_audio_files(output_dir):
             )
 
     # List missing WAV files where text files exist
-    missing_wavs = set(p.stem for p in txt_files) - set(p.stem for p in wav_files)
+    missing_wavs = set(p.stem for p in txt_files) - set(
+        p.stem for p in wav_files
+    )
     if missing_wavs:
         log_message(
             f"\nFound {len(missing_wavs)} text files without corresponding WAV files:",
             is_error=True,
         )
-        for stem in sorted(list(missing_wavs))[:10]:  # Limit to 10 for readability
+        for stem in sorted(list(missing_wavs))[
+            :10
+        ]:  # Limit to 10 for readability
             log_message(f"  - {stem}.txt (no WAV file)", is_error=True)
         if len(missing_wavs) > 10:
-            log_message(f"  ... and {len(missing_wavs) - 10} more", is_error=True)
+            log_message(
+                f"  ... and {len(missing_wavs) - 10} more", is_error=True
+            )
 
 
 if __name__ == "__main__":
