@@ -61,6 +61,8 @@ If a voice is not recognized, the API returns a `400` validation error.
 
 ```json
 {
+  "product": "bgmp",
+  "article_id": "ARTICLE123",
   "model": "kokoro",
   "input": "string",
   "voice": "af_heart",
@@ -99,6 +101,13 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `model` | string | Model name to use. Must match a supported server model. Currently the only supported value is `kokoro`. |
 | `input` | string | Text to convert to speech. |
 | `voice` | string | Voice name or voice combination. Default: `af_heart`. |
+
+#### Identification Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `product` | string | Line of business the article falls under, i.e. `globe`, `bdc`, `stat`, `bomag`, etc. Defaults to `bgmp`. |
+| `article_id` | string | Article ID of the article you are generating audio for. Defaults to a UUID. |
 
 #### Audio output fields
 
