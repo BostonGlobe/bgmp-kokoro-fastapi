@@ -219,7 +219,7 @@ async def create_speech(
 
                 # Use download_format if specified, otherwise use response_format
                 output_format = request.download_format or request.response_format
-                temp_writer = TempFileWriter(output_format)
+                temp_writer = TempFileWriter(output_format, request.product, request.article_id)
                 await temp_writer.__aenter__()  # Initialize temp file
 
                 # Get download path immediately after temp file creation
@@ -412,14 +412,14 @@ async def create_speech(
 
 
 @router.get("/download/{filename}")
-async def download_audio_file(filename: str):
+async def download_audio_file(filename: str, product: str = "bgmp"):
     """Download a generated audio file from temp storage"""
     try:
         from ..core.paths import _find_file, get_content_type
 
         # Search for file in temp directory
         file_path = await _find_file(
-            filename=filename, search_paths=[settings.temp_file_dir]
+            filename=filename, search_paths=[f"{settings.temp_file_dir}/{product}"]
         )
 
         # Get content type from path helper

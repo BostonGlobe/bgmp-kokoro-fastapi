@@ -1,8 +1,10 @@
-# Quickstart: `/audio/speech`
+# Quickstart: 
+
+## `/audio/speech`
 
 This guide shows how to generate speech from a client application using the OpenAI-compatible `POST /v1/audio/speech` endpoint.
 
-## What the endpoint does
+### What the endpoint does
 
 `/v1/audio/speech` converts text into an audio file.
 
@@ -14,7 +16,7 @@ This guide shows how to generate speech from a client application using the Open
 
 The endpoint accepts the same general pattern as OpenAI’s speech API, while using this project’s model and voice names.
 
-## Basic request
+### Basic request
 
 Send a JSON body with at least:
 
@@ -33,7 +35,7 @@ Example:
 }
 ```
 
-## Supported models
+### Supported models
 
 The endpoint validates `model` against the server’s model list.
 
@@ -43,7 +45,7 @@ Supported values are:
 
 If you send a model that is not enabled on the server, the API returns `400` with an `invalid_model` error.
 
-## Supported voices
+### Supported voices
 
 Voice names are validated against the server’s available voices.
 
@@ -53,7 +55,7 @@ Voice names are validated against the server’s available voices.
 
 If a voice is not recognized, the API returns a `400` validation error.
 
-## Request schema
+### Request schema
 
 `POST /v1/audio/speech` accepts the `OpenAISpeechRequest` body.
 
@@ -88,9 +90,9 @@ If a voice is not recognized, the API returns a `400` validation error.
 }
 ```
 
-## Field reference
+### Field reference
 
-### Required fields
+#### Required fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -98,14 +100,14 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `input` | string | Text to convert to speech. |
 | `voice` | string | Voice name or voice combination. Default: `af_heart`. |
 
-### Audio output fields
+#### Audio output fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `response_format` | string | Audio format returned by the endpoint. Supported values: `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm`. Default: `mp3`. The code currently flags AAC as not fully supported, so validate that format in your environment before relying on it. |
 | `download_format` | string or null | Optional separate format for the downloadable file when `return_download_link` is enabled. If omitted, the endpoint uses `response_format`. |
 
-### Playback and generation fields
+#### Playback and generation fields
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -114,13 +116,13 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `lang_code` | string or null | Optional language code used during text processing. If omitted, the server falls back to the first letter of the voice name. |
 | `volume_multiplier` | number or null | Multiplies the output volume. Default: `1.0`. |
 
-### Download fields
+#### Download fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `return_download_link` | boolean | When `true`, the endpoint returns an `X-Download-Path` header that points to a downloadable file route under the same API base, such as `/v1/download/<filename>`. Default: `false`. |
 
-### Normalization fields
+#### Normalization fields
 
 `normalization_options` is an object that controls how the input text is preprocessed before synthesis.
 
@@ -142,7 +144,7 @@ If a voice is not recognized, the API returns a `400` validation error.
 | `pronunciation_normalization` | boolean | Applies pronunciation overrides. Default: `true`. |
 | `pronunciation_dictionary` | object | Custom pronunciation map for specific words. Default: `{}`. |
 
-## Response behavior
+### Response behavior
 
 The endpoint returns audio bytes directly, not JSON.
 
@@ -156,9 +158,9 @@ If something goes wrong, the API returns JSON error responses with HTTP status c
 - `400` for validation issues
 - `500` for processing errors
 
-## Example requests
+### Example requests
 
-### JavaScript `fetch`
+#### JavaScript `fetch`
 
 ```js
 const response = await fetch("http://localhost:8880/v1/audio/speech", {
@@ -185,7 +187,7 @@ const audio = new Audio(url);
 await audio.play();
 ```
 
-### PHP with cURL
+#### PHP with cURL
 
 ```php
 <?php
@@ -224,14 +226,14 @@ if ($status >= 400) {
 file_put_contents(__DIR__ . "/output.mp3", $audio);
 ```
 
-## Practical tips
+### Practical tips
 
 - Use `stream: true` for the fastest first byte and the best OpenAI-compatible behavior.
 - Use `stream: false` if your client prefers a single complete audio payload.
 - If you need a separate downloadable file format, set `return_download_link: true` and optionally `download_format`.
 - If your text contains URLs, email addresses, phone numbers, or HTML, keep the default normalization settings unless you have a reason to disable them.
 
-## Example cURL request
+### Example cURL request
 
 ```bash
 curl -X POST "http://localhost:8880/v1/audio/speech" \
@@ -244,4 +246,96 @@ curl -X POST "http://localhost:8880/v1/audio/speech" \
     "stream": true
   }' \
   --output output.mp3
+```
+
+## `/download/{filename}`
+
+This guide shows how to download a generated audio file to your client using the GET /v1/download/{filename} endpoint.
+
+### What the endpoint does
+
+`/v1/download/{filename}` returns an audio file as raw bytes.
+
+- Method: `GET`
+- Path: `/v1/download/{filename}`
+- Request params: `product`
+- Response: binary audio data
+- Default behavior: streaming audio chunks as they are generated
+
+### Field reference
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `filename` | string | Article ID of the article you'd like to fetch. This includes the file extension, i.e. `ARTICLE123.mp3` |
+| `product` | string | Line of business the article falls under, i.e. `globe`, `bdc`, `stat`, `bomag`, etc. Defaults to `bgmp`. |
+
+### Response behavior
+
+The endpoint returns audio bytes directly, not JSON.
+
+If something goes wrong, the API returns JSON error responses with HTTP status codes such as:
+
+- `400` for validation issues
+- `500` for processing errors
+
+### Example requests
+
+#### JavaScript `fetch`
+
+```js
+const filename = "ARTICLE123.mp3";
+const product = "bgmp";
+
+const response = await fetch(
+  `http://localhost:8880/v1/download/${encodeURIComponent(filename)}?product=${encodeURIComponent(product)}`
+);
+
+if (!response.ok) {
+  throw new Error(`Request failed: ${response.status}`);
+}
+
+const audioBlob = await response.blob();
+const downloadUrl = URL.createObjectURL(audioBlob);
+
+const link = document.createElement("a");
+link.href = downloadUrl;
+link.download = filename;
+link.click();
+
+URL.revokeObjectURL(downloadUrl);
+```
+
+#### PHP with cURL
+
+```php
+<?php
+
+$filename = "ARTICLE123.mp3";
+$product = "bgmp";
+$url = sprintf(
+    "http://localhost:8880/v1/download/%s?product=%s",
+    rawurlencode($filename),
+    rawurlencode($product)
+);
+
+$ch = curl_init($url);
+curl_setopt_array($ch, [
+    CURLOPT_HTTPGET => true,
+    CURLOPT_RETURNTRANSFER => true,
+]);
+
+$audio = curl_exec($ch);
+
+if ($audio === false) {
+    throw new RuntimeException(curl_error($ch));
+}
+
+$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+if ($status >= 400) {
+    throw new RuntimeException("Request failed with status {$status}");
+}
+
+file_put_contents(__DIR__ . "/" . $filename, $audio);
 ```

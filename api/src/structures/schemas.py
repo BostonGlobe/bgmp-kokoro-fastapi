@@ -107,7 +107,14 @@ class NormalizationOptions(BaseModel):
 
 class OpenAISpeechRequest(BaseModel):
     """Request schema for OpenAI-compatible speech endpoint"""
-
+    product: str = Field(
+        default="bgmp",
+        description="The product name for the request. Default is 'bgmp'.",
+    )
+    article_id: str = Field(
+        default="",
+        description="An optional article ID for the request. Default is a uuid.",
+    )
     model: str = Field(
         default="kokoro",
         description="The model to use for generation. Supported models: tts-1, tts-1-hd, kokoro",
