@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.KOKORO_API_BASE_URL || "http://0.0.0.0:8880";
 const SPEECH_ENDPOINT_URL = `${API_BASE_URL}/v1/audio/speech`;
 const DOWNLOAD_ENDPOINT_URL = `${API_BASE_URL}/v1/download/${ARTICLE_ID}.mp3?product=${PRODUCT}`;
 const ARTICLE_PATH = path.join(__dirname, "articles", `${ARTICLE_ID}.txt`);
-const DOWNLOAD_OUTPUT_PATH = path.join(__dirname, `${ARTICLE_ID}.mp3`);
+const DOWNLOAD_OUTPUT_PATH = path.join(__dirname, `audio/${ARTICLE_ID}.mp3`);
 
 async function readArticleText() {
     return fs.promises.readFile(ARTICLE_PATH, "utf8");
