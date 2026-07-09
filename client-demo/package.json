@@ -2,7 +2,7 @@
   "name": "client-demo",
   "version": "1.0.0",
   "description": "NPM client demo of the Kokoro TTS API",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "author": "owen.radcliffe@globe.com",
   "type": "commonjs",
   "main": "index.js",
