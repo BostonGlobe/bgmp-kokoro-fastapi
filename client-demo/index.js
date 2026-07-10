@@ -1,8 +1,38 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const ENV_PATH = path.join(__dirname, ".env.qa");
+
+function loadDotEnv(filePath) {
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
+
+    const contents = fs.readFileSync(filePath, "utf8");
+    for (const line of contents.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) {
+            continue;
+        }
+
+        const equalsIndex = trimmed.indexOf("=");
+        if (equalsIndex === -1) {
+            continue;
+        }
+
+        const key = trimmed.slice(0, equalsIndex).trim();
+        const value = trimmed.slice(equalsIndex + 1).trim();
+
+        if (key && process.env[key] === undefined) {
+            process.env[key] = value;
+        }
+    }
+}
+
+loadDotEnv(ENV_PATH);
+
 const ARTICLE_ID = "IGAZUGISZZHLVD22LRIRKLZKO4";
 const PRODUCT = "globe";
-const API_BASE_URL = process.env.KOKORO_API_BASE_URL || "http://0.0.0.0:8880";
+const API_BASE_URL = process.env.KOKORO_API_BASE_URL;
 const SPEECH_ENDPOINT_URL = `${API_BASE_URL}/v1/audio/speech`;
 const DOWNLOAD_ENDPOINT_URL = `${API_BASE_URL}/v1/download/${ARTICLE_ID}.mp3?product=${PRODUCT}`;
 const ARTICLE_PATH = path.join(__dirname, "articles", `${ARTICLE_ID}.txt`);
