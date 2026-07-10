@@ -22,7 +22,12 @@ bgmp-kokoro-fastapi in the dev2 Jenkins environment. Expires Sep. 24, 2026.
 The service follows semantic versioning with major.minor.patch conventions. The Jenkins pipeline checks the container registry to see if the image tag already exists before building and pushing to enforce immutable tagging, i.e. there can only be one v1.0.0.
 
 ## How To Deploy It
-Deploying the service is currently managed by Ops, using the following [docker-compose.yaml](https://github.com/BostonGlobe/ops-docker/blob/main/bgmp-kokoro-tts/compose.yaml) file.
+1. Clone [ops-docker-bgmp-kokoro-tts](https://github.com/BostonGlobe/ops-docker-bgmp-kokoro-tts).
+2. To deploy to QA, checkout the qa branch.
+3. To deploy to prod, checkout a new branch.
+4. Update compose.yaml with the new tag of the image you'd like to deploy.
+5. To deploy to QA, commit and push your changes directly to the qa branch. Then go to the [Pipeline Deploy Updated Container QA](https://jenkins.boston.com/adm2/job/Deploy%20Updated%20Container%20QA/) Jenkins job, and build with DOCKER_CLUSTER=docker-qa-kokoro, APPLICATION=bgmp-kokoro-tts, BRANCH=qa, and DEPLOY_TICKET=testing-[image tag].
+6. To deploy to prod, commit and push your changes on your branch and open a PR to the main branch. Then create an ops ticket for a deployment when you are ready. DO NOT run any Jenkins jobs yourself.
 
 ## How To Maintain It
 ### Upstream Repo Upgrades
