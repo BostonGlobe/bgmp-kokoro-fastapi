@@ -108,18 +108,14 @@ class TempFileWriter:
             self.temp_file = await aiofiles.open(self.temp_path, mode="wb")
 
             # Generate download path immediately
-            self.download_path = (
-                f"/download/{self.product}/{self.article_id}.{self.format}"
-            )
+            self.download_path = f"/download/{self.article_id}.{self.format}?product={self.product}"
         except Exception as e:
             # Handle permission issues or other errors gracefully
             logger.error(f"Failed to create temp file: {e}")
             self._write_error = True
             # Set a placeholder path so the API can still function
             self.temp_path = f"unavailable_{self.format}"
-            self.download_path = (
-                f"/download/{self.product}/{self.article_id}.{self.format}"
-            )
+            self.download_path = f"/download/{self.article_id}.{self.format}?product={self.product}"
 
         return self
 
