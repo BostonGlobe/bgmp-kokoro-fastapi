@@ -4,7 +4,10 @@ FROM ubuntu:20.04 AS builder
 RUN apt-get update -y && \
     apt-get install -y siege
 
+ARG TEST_TYPE=baseline
+
 WORKDIR /tests
 COPY . .
 
-CMD ["bash", "./siege_baseline.sh"]
+RUN ln -s ./siege_${TEST_TYPE}.sh ./siege_test.sh
+CMD ["bash", "./siege_test.sh"]

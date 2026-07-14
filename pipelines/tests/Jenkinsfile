@@ -11,7 +11,7 @@ pipeline{
     parameters {
         choice (
             name: 'TEST_TYPE',
-            choices: ['baseline'],
+            choices: ['baseline', 'peak', 'stress'],
             description: 'Type of load test to run'
         )
     }
@@ -55,14 +55,13 @@ pipeline{
                 checkout scm
             }
         }
-        stage('Baseline Load Test') {
+        stage('Load Test') {
             steps {
                 script {
                     sh 'cd tests'
-                    sh 'ls'
                     def imageTag = "${params.TEST_TYPE}-load-test"
 
-                    sh "docker build -t ${imageTag} tests"
+                    sh "docker build -t ${imageTag} tests --build-arg TEST_TYPE=${params.TEST_TYPE}"
 
                     echo "Built Docker image ${imageTag}"
                     sh "docker run ${imageTag}"
