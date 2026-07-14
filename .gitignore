@@ -1,5 +1,6 @@
 # Version control
 .git
+*.DS_Store
 
 # Python
 __pycache__/
