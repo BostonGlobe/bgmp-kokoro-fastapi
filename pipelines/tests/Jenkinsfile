@@ -53,22 +53,23 @@ pipeline{
         stage('Checkout git repo') {
             steps {
                 checkout scm
-                sh 'cd tests'
             }
         }
         stage('Load Test') {
             steps {
                 script {
-                def imageTag = "${params.TEST_TYPE}-load-test"
+                    sh 'cd tests'
+                    sh 'ls'
+                    def imageTag = "${params.TEST_TYPE}-load-test"
 
-                docker.build(
-                    imageTag
-                )
+                    docker.build(
+                        imageTag
+                    )
 
-                echo "Built Docker image ${imageTag}"
-                }
-                sh "docker run ${imageTag}"
-                sh "docker rmi ${imageTag}"
+                    echo "Built Docker image ${imageTag}"
+                    }
+                    sh "docker run ${imageTag}"
+                    sh "docker rmi ${imageTag}"
             }
         }
     }
