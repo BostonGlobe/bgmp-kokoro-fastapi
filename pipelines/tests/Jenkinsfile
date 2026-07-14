@@ -5,7 +5,9 @@
 */
 
 pipeline{
-    agent any
+    agent {
+			label 'docker'
+		}
     parameters {
         choice (
             name: 'TEST_TYPE',
@@ -17,23 +19,23 @@ pipeline{
         stage('Checkout git repo') {
             steps {
                 checkout scm
-                sh 'dzdo apt update -y'
-                sh 'dzdo apt install siege -y'
-                sh 'siege -C'
+                sh 'cd tests'
             }
         }
-        stage('Run Baseline Test'){
+        stage('Load Test') {
             steps {
-                sh '''
-                    cd tests
-                    ./siege_baseline.sh
-                '''
+                script {
+                def imageTag = "${params.TEST_TYPE}-load-test"
+
+                docker.build(
+                    imageTag
+                )
+
+                echo "Built Docker image ${imageTag}"
+                }
+                sh "docker run ${imageTag}"
+                sh "docker rmi ${imageTag}"
             }
-        }
-    }
-    post {
-        always {
-            sh 'dzdo apt remove siege -y'
         }
     }
 }
