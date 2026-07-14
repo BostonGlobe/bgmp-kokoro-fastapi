@@ -11,7 +11,7 @@ pipeline{
     parameters {
         choice (
             name: 'TEST_TYPE',
-            choices: ['baseline', 'peak'],
+            choices: ['baseline', 'peak', 'stress'],
             description: 'Type of load test to run'
         )
     }

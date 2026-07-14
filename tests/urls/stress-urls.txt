@@ -1,0 +1,6 @@
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/E62LQ2X6KVHGHJFPPTFFQHHSRU.json
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/LG773Y763VHEDNAIGSXQQ6DX5Y.json
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/NM6TAUJ7HNG6LNSPGWX7RN6OM4.json
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/OQ76OPB54JHWLEQGGQNC3XR3KQ.json
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/SHEHRQKBTBFDFEC3H3BZDJHETE.json
+https://kokoro-qa.globe.com/v1/audio/speech POST < urls/post-payloads/SSLWZDSFX5BDNGL6P5BHGQRKEM.json
