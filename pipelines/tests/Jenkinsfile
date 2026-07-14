@@ -62,9 +62,7 @@ pipeline{
                     sh 'ls'
                     def imageTag = "${params.TEST_TYPE}-load-test"
 
-                    docker.build(
-                        imageTag
-                    )
+                    sh "docker build -t ${imageTag} tests"
 
                     echo "Built Docker image ${imageTag}"
                     }
