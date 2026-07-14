@@ -1,7 +1,7 @@
 /**
 * Jenkins file to run load tests on the Kokoro API service in QA.
 * 
-* Pipeline URL: <TODO>
+* Pipeline URL: https://jenkins.boston.com/dev2/job/bgmp-kokoro-load-testing/
 */
 
 pipeline{
