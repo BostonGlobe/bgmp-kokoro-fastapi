@@ -16,6 +16,40 @@ pipeline{
         )
     }
     stages {
+        stage('Prepare Environment') {
+            steps {
+                script {
+                    // Get the current user and group IDs.
+                    userId = sh(
+                        script: 'id -u',
+                        returnStdout: true
+                    ).trim()
+                    groupId = sh(
+                        script: 'id -g',
+                        returnStdout: true
+                    ).trim()
+
+                    // Check if Docker is running
+                    def isDockerRunning = sh(
+                        script: "dzdo systemctl is-active docker",
+                        returnStatus: true
+                    ) == 0
+
+                    if (isDockerRunning) {
+                        // Change permissions if Docker is running
+                        sh "dzdo chown root:docker /var/run/docker.sock"
+                    } else {
+                        // Restart Docker if it is not running
+                        echo "Docker is not running. Restarting Docker service."
+                        sh "dzdo systemctl restart docker"
+                        // Wait a moment for Docker to start
+                        sleep(time: 10, unit: 'SECONDS')
+                        // Then change permissions
+                        sh "dzdo chown root:docker /var/run/docker.sock"
+                    }
+                }
+            }
+        }
         stage('Checkout git repo') {
             steps {
                 checkout scm
