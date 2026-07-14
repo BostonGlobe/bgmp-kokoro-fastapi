@@ -1,0 +1,12 @@
+HOST=https://kokoro-qa.globe.com
+# HOST=http://0.0.0.0:8880
+$(HOST)/v1/audio/speech POST < urls/post-payloads/6HUFAPQYFNDUPI6QHX34B3YLAM.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/726WPMFMIRHRXJDKTPBPCWWJTM.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/D73BIWWHQVHNJKDAN46GUTHOTI.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/IQS7Z6LQKVH35MCQYZAIL6TFHM.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/LG773Y763VHEDNAIGSXQQ6DX5Y.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/NM6TAUJ7HNG6LNSPGWX7RN6OM4.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/O5GVK2LSERCPTI462ABGQPVXAQ.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/OXOTIXTEKJE2VJ5PYIS4PRRUMY.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/TYDQNRW2SBHJXGMBUOQ7ZK6B2M.json
+$(HOST)/v1/audio/speech POST < urls/post-payloads/CZ6PI2DP3BELHLOYGGYWIRMEBI.json

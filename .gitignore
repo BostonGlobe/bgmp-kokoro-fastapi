@@ -1,5 +1,6 @@
 # Version control
 .git
+*.DS_Store
 
 # Python
 __pycache__/
@@ -50,6 +51,7 @@ ui/data/
 EXTERNAL_UV_DOCUMENTATION*
 app
 api/temp_files/
+tests/results/*.log
 
 # Docker
 # Dockerfile*
