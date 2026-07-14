@@ -17,6 +17,7 @@ pipeline{
         stage('Checkout git repo') {
             steps {
                 checkout scm
+                sh 'dzdo apt install siege -y'
             }
         }
         stage('Run Baseline Test'){
@@ -26,6 +27,11 @@ pipeline{
                     ./siege_baseline.sh
                 '''
             }
+        }
+    }
+    post {
+        always {
+            sh 'dzdo apt remove siege -y'
         }
     }
 }
