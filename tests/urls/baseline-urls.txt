@@ -1,5 +1,5 @@
-# HOST=https://kokoro-qa.globe.com
-HOST=http://0.0.0.0:8880
+HOST=https://kokoro-qa.globe.com
+# HOST=http://0.0.0.0:8880
 $(HOST)/v1/audio/speech POST < urls/post-payloads/6HUFAPQYFNDUPI6QHX34B3YLAM.json
 $(HOST)/v1/audio/speech POST < urls/post-payloads/726WPMFMIRHRXJDKTPBPCWWJTM.json
 $(HOST)/v1/audio/speech POST < urls/post-payloads/D73BIWWHQVHNJKDAN46GUTHOTI.json

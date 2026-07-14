@@ -1,0 +1,30 @@
+/**
+* Jenkins file to run load tests on the Kokoro API service in QA.
+* 
+* Pipeline URL: <TODO>
+*/
+
+pipeline{
+    parameters {
+        choice (
+            name: 'TEST_TYPE',
+            choices: ['baseline'],
+            description: 'Type of load test to run'
+        )
+    }
+    stages {
+        stage('Checkout git repo') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Run Baseline Test'){
+            steps {
+                sh '''
+                    cd tests
+                    ./siege_baseline.sh
+                '''
+            }
+        }
+    }
+}
