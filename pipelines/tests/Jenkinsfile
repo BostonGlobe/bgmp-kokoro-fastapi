@@ -17,6 +17,7 @@ pipeline{
         stage('Checkout git repo') {
             steps {
                 checkout scm
+                sh 'dzdo apt update -y'
                 sh 'dzdo apt install siege -y'
             }
         }
