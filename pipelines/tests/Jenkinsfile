@@ -66,7 +66,7 @@ pipeline{
 
                     echo "Built Docker image ${imageTag}"
                     sh "docker run ${imageTag}"
-                    sh "docker rmi ${imageTag}"
+                    sh "docker rmi --force ${imageTag}"
                 }
             }
         }
