@@ -19,6 +19,7 @@ pipeline{
                 checkout scm
                 sh 'dzdo apt update -y'
                 sh 'dzdo apt install siege -y'
+                sh 'siege -C'
             }
         }
         stage('Run Baseline Test'){
