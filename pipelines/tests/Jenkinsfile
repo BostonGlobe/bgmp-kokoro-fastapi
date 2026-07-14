@@ -55,7 +55,7 @@ pipeline{
                 checkout scm
             }
         }
-        stage('Load Test') {
+        stage('Baseline Load Test') {
             steps {
                 script {
                     sh 'cd tests'
@@ -65,9 +65,9 @@ pipeline{
                     sh "docker build -t ${imageTag} tests"
 
                     echo "Built Docker image ${imageTag}"
-                    }
                     sh "docker run ${imageTag}"
                     sh "docker rmi ${imageTag}"
+                }
             }
         }
     }
