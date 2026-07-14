@@ -9,4 +9,5 @@ ARG TEST_TYPE=baseline
 WORKDIR /tests
 COPY . .
 
-CMD ["bash", "./siege_${TEST_TYPE}.sh"]
+RUN ln -s ./siege_${TEST_TYPE}.sh ./siege_test.sh
+CMD ["bash", "./siege_test.sh"]
