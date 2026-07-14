@@ -157,19 +157,16 @@ async function loadArticleFiles(articlesDir) {
   return articles;
 }
 
-function escapeJsonForSiegeLine(payloadObject) {
-  // Siege URL files expect the POST body as raw text after the method token.
-  // Return JSON directly so FastAPI receives an object, not a quoted string.
-  return JSON.stringify(payloadObject).replace(/\$/g, '\\$');
-}
-
 async function buildPostUrlsFromArticles(articlesDir, postUrlsPath, host) {
   const articles = await loadArticleFiles(articlesDir);
   if (articles.length === 0) {
     throw new Error(`No .txt files found in ${articlesDir}`);
   }
 
-  const lines = articles.map((article) => {
+  const payloadsDir = join(dirname(postUrlsPath), 'post-payloads');
+  await mkdir(payloadsDir, { recursive: true });
+
+  const lines = articles.map(async (article) => {
     const payload = {
       article_id: article.articleId,
       product: 'test',
@@ -183,11 +180,15 @@ async function buildPostUrlsFromArticles(articlesDir, postUrlsPath, host) {
       },
     };
 
-    return `${host}/v1/audio/speech POST ${escapeJsonForSiegeLine(payload)}`;
+    const payloadPath = join(payloadsDir, `${article.articleId}.json`);
+    await writeFile(payloadPath, `${JSON.stringify(payload, null, 2)}\n`);
+    return `${host}/v1/audio/speech POST <${payloadPath}>`;
   });
 
+  const resolvedLines = await Promise.all(lines);
+
   await mkdir(dirname(postUrlsPath), { recursive: true });
-  await writeFile(postUrlsPath, `${lines.join('\n')}\n`);
+  await writeFile(postUrlsPath, `${resolvedLines.join('\n')}\n`);
 
   return { articleCount: articles.length, postUrlsPath };
 }
