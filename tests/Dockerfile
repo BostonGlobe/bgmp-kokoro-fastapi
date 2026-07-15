@@ -10,5 +10,5 @@ ARG HTTP_METHOD=post
 WORKDIR /tests
 COPY . .
 
-RUN ln -s ./${METHOD}/siege_${TEST_TYPE}.sh ./siege_test.sh
+RUN ln -s ./${HTTP_METHOD}/siege_${TEST_TYPE}.sh ./siege_test.sh
 CMD ["bash", "./siege_test.sh"]
