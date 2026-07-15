@@ -21,7 +21,7 @@ pipeline{
         )
     }
     stages {
-        stage('Prepare Environment') {
+        stage('Prepare environment') {
             steps {
                 script {
                     // Get the current user and group IDs.
@@ -60,7 +60,7 @@ pipeline{
                 checkout scm
             }
         }
-        stage('Load Test') {
+        stage("Run ${params.TEST_TYPE} load test on ${params.HTTP_METHOD} endpoint") {
             steps {
                 script {
                     sh 'cd tests'
