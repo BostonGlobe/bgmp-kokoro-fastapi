@@ -14,6 +14,11 @@ pipeline{
             choices: ['baseline', 'peak', 'stress'],
             description: 'Type of load test to run'
         )
+        choice (
+            name: 'HTTP_METHOD',
+            choices: ['post', 'get'],
+            description: 'Whether to test the POST /audio/speech endpoint or the GET /download/{filename} endpoint'
+        )
     }
     stages {
         stage('Prepare Environment') {
@@ -61,7 +66,7 @@ pipeline{
                     sh 'cd tests'
                     def imageTag = "${params.TEST_TYPE}-load-test"
 
-                    sh "docker build -t ${imageTag} tests --build-arg TEST_TYPE=${params.TEST_TYPE}"
+                    sh "docker build -t ${imageTag} tests --build-arg TEST_TYPE=${params.TEST_TYPE} --build-arg HTTP_METHOD=${params.HTTP_METHOD}"
 
                     echo "Built Docker image ${imageTag}"
                     sh "docker run ${imageTag}"
