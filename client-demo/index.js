@@ -34,7 +34,8 @@ const ARTICLE_ID = "IGAZUGISZZHLVD22LRIRKLZKO4";
 const PRODUCT = "globe";
 const API_BASE_URL = process.env.KOKORO_API_BASE_URL;
 const SPEECH_ENDPOINT_URL = `${API_BASE_URL}/v1/audio/speech`;
-const DOWNLOAD_ENDPOINT_URL = `${API_BASE_URL}/v1/download/${ARTICLE_ID}.mp3?product=${PRODUCT}`;
+var DOWNLOAD_PATH = "";
+const DOWNLOAD_ENDPOINT_URL = `${API_BASE_URL}/v1`;
 const ARTICLE_PATH = path.join(__dirname, "articles", `${ARTICLE_ID}.txt`);
 const DOWNLOAD_OUTPUT_PATH = path.join(__dirname, `audio/${ARTICLE_ID}.mp3`);
 
@@ -148,10 +149,10 @@ async function saveResponseToFile(response, outputPath) {
     return { chunkCount, totalBytes };
 }
 
-async function fetchDownloadPath() {
+async function fetchDownloadPath(path) {
     console.log(`Fetching download endpoint ${DOWNLOAD_ENDPOINT_URL}`);
 
-    const response = await fetch(DOWNLOAD_ENDPOINT_URL);
+    const response = await fetch(`${DOWNLOAD_ENDPOINT_URL}${path}`);
     console.log(`Download status: ${response.status} ${response.statusText}`);
     console.log(
         `Download Content-Type: ${response.headers.get("content-type") || "n/a"}`,
@@ -207,7 +208,7 @@ async function main() {
 
     const { chunkCount, totalBytes } = await consumeStreamingResponse(response);
     console.log(`Stream completed after ${chunkCount} chunks and ${totalBytes} bytes`);
-    await fetchDownloadPath();
+    await fetchDownloadPath(response.headers.get("x-download-path"));
 }
 
 main().catch((error) => {
