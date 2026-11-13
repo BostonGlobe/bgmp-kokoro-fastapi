@@ -88,6 +88,11 @@ class Settings(BaseSettings):
     max_temp_dir_age_hours: int = 1  # Remove temp files older than 1 hour
     max_temp_dir_count: int = 3  # Maximum number of temp files to keep
 
+    # Syslog Settings
+    syslog_enabled: bool = False  # Whether to forward logs to a syslog server
+    syslog_host: str = "logs.globe.com"  # Syslog server hostname
+    syslog_port: int = 514  # Syslog server UDP port
+
     class Config:
         env_file = ".env"
 

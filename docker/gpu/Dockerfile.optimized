@@ -92,7 +92,10 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PHONEMIZER_ESPEAK_PATH=/usr/bin \
     PHONEMIZER_ESPEAK_DATA=/usr/share/espeak-ng-data \
     ESPEAK_DATA_PATH=/usr/share/espeak-ng-data \
-    DEVICE="gpu"
+    DEVICE="gpu" \
+    SYSLOG_ENABLED=true \
+    SYSLOG_HOST=logs.globe.com \
+    SYSLOG_PORT=514
 
 # Run FastAPI server
 CMD ["./entrypoint.sh"]
