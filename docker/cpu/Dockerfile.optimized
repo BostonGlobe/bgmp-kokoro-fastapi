@@ -95,6 +95,9 @@ RUN chmod +x ./entrypoint.sh
 
 USER appuser
 
+# Forward logs to syslog; set --build-arg SYSLOG_ENABLED=false to disable.
+ARG SYSLOG_ENABLED=false
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app:/app/api \
@@ -105,7 +108,7 @@ ENV PYTHONUNBUFFERED=1 \
     PHONEMIZER_ESPEAK_DATA=/usr/share/espeak-ng-data \
     ESPEAK_DATA_PATH=/usr/share/espeak-ng-data \
     DEVICE="cpu" \
-    SYSLOG_ENABLED=true \
+    SYSLOG_ENABLED=$SYSLOG_ENABLED \
     SYSLOG_HOST=logs.globe.com \
     SYSLOG_PORT=514
 
