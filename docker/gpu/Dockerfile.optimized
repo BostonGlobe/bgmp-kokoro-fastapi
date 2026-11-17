@@ -83,7 +83,7 @@ RUN chmod +x ./entrypoint.sh
 
 USER appuser
 
-# Forward logs to syslog; set --build-arg SYSLOG_ENABLED=false to disable.
+# Forward logs to syslog; set --build-arg SYSLOG_ENABLED=true in the Jenkins pipeline to enable logging in the live environment.
 ARG SYSLOG_ENABLED=false
 
 # Set environment variables
