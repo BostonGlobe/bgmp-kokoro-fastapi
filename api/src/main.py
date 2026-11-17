@@ -2,7 +2,9 @@
 FastAPI OpenAI Compatible API
 """
 
+import logging.handlers
 import os
+import socket
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -48,6 +50,30 @@ def setup_logger():
             },
         ],
     }
+    if settings.syslog_enabled:
+        try:
+            syslog_handler = logging.handlers.SysLogHandler(
+                address=(settings.syslog_host, settings.syslog_port),
+                socktype=socket.SOCK_DGRAM,
+            )
+        except OSError as e:
+            print(
+                f"Failed to configure syslog handler for "
+                f"{settings.syslog_host}:{settings.syslog_port}: {e}"
+            )
+        else:
+            config["handlers"].append(
+                {
+                    "sink": syslog_handler,
+                    "format": "kokoro-tts: {level: <8} | {module}:{line} | {message}",
+                    "colorize": False,
+                    "level": level,
+                }
+            )
+            print(
+                f"Forwarding logs to syslog at "
+                f"{settings.syslog_host}:{settings.syslog_port}/udp"
+            )
     logger.remove()
     logger.configure(**config)
     logger.level("ERROR", color="<red>")

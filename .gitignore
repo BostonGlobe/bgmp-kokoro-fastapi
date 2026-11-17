@@ -22,7 +22,7 @@ build/
 *.onnx
 *.pth
 # Environment
-# .env
+*.env*
 .venv/
 node_modules/
 env/
