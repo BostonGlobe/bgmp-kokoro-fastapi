@@ -228,6 +228,7 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Qatar": "/kə'tɑːr/",
     "Kyiv": "/'kiːɪv/",
     "Epstein": "/'ɛpstiːn/",
+    "tallied": "/tælid/",
 }
 
 INFLECT_ENGINE = inflect.engine()
