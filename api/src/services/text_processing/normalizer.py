@@ -227,6 +227,7 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Ramallah": "/rə'mɑːlə/",
     "Qatar": "/kə'tɑːr/",
     "Kyiv": "/'kiːɪv/",
+    "Epstein": "/'ɛpstiːn/",
 }
 
 INFLECT_ENGINE = inflect.engine()
