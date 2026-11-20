@@ -211,6 +211,22 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Tyringham": "/t'aɪərɪŋəm/",
     "Whately": "/'hweɪtli/",
     "Celtics": "/s'ɛltɪks/",
+    "Saddam": "/sæ'dɑːm/",
+    "Hussein": "/hʊ'seɪn/",
+    "Kelce": "/kɛlsi/",
+    "Fallon": "/fælən/",
+    "Affleck": "/æflɛk/",
+    "Beth": "/bɛ θ/",
+    "Buttigieg": "/'butədʒədʒ/",
+    "Volodymyr": "/vɒlə'dɪmɪər/",
+    "Zelenskyy": "/zɪ'lɛnski/",
+    "Xi": "/'ʃiː/",
+    "Luiz Inácio Lula da Silva": "/lu'iz i'nasju 'lulɐ da 'siwvɐ/",
+    "Malden": "/'mɑldən/",
+    "Fatah": "/'fatah/",
+    "Ramallah": "/rə'mɑːlə/",
+    "Qatar": "/kə'tɑːr/",
+    "Kyiv": "/'kiːɪv/",
 }
 
 INFLECT_ENGINE = inflect.engine()
