@@ -158,6 +158,35 @@ MONEY_UNITS = {
     "€": ("euro", "cent"),
 }
 
+COMMON_ABBREVIATIONS = {
+    "Maj.": "Major",
+    "Lt.": "Lieutenant",
+    "Capt.": "Captain",
+    "Col.": "Colonel",
+    "Gen.": "General",
+    "Brig.": "Brigadier",
+    "Cmdr.": "Commander",
+    "Adm.": "Admiral",
+    "Pvt.": "Private",
+    "Sgt.": "Sergeant",
+    "Ltd.": "Limited",
+    "Inc.": "Incorporated",
+    "Acct.": "Account",
+    "Dept.": "Department",
+    "Dist.": "District",
+    "Dr.": "Doctor",
+    "etc.": "et cetera",
+    "Gov.": "Government",
+    "Info.": "Information",
+    "Jr.": "Junior",
+    "Sr.": "Senior",
+    "Mgr.": "Manager",
+    "Msg.": "Message",
+    "Notif.": "Notification",
+    "Org.": "Organization",
+    "Qty.": "Quantity",
+}
+
 # Pre-compiled regex patterns for performance
 EMAIL_PATTERN = re.compile(
     r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}\b", re.IGNORECASE
@@ -265,6 +294,36 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
     return pn_pattern.sub(
         lambda match: preprocess_pronunciation(match.group(0), pn_to_ipa),
         text,
+    )
+
+
+def handle_common_abbreviations(
+    text, abbreviations_dict: dict = COMMON_ABBREVIATIONS
+) -> str:
+    """
+    Expand common abbreviations into the full word
+    """
+
+    def preprocess_abbreviations(abbreviation: str):
+        return abbreviations_dict[abbreviation]
+
+    # Match the exact known abbreviations
+    pattern = re.compile(
+        r"\b(?:"
+        + "|".join(
+            sorted(
+                (
+                    re.escape(abbreviation.strip())
+                    for abbreviation in abbreviations_dict.keys()
+                ),
+                key=len,
+                reverse=True,
+            )
+        )
+        + r")(?!\w)"
+    )
+    return pattern.sub(
+        lambda match: preprocess_abbreviations(match.group(0)), text
     )
 
 
@@ -624,6 +683,9 @@ def normalize_text(
             handle_phone_number,
             text,
         )
+
+    # Expand common abbreviations
+    text = handle_common_abbreviations(text)
 
     # Replace quotes and brackets (additional cleanup)
     text = text.replace(chr(8216), "'").replace(chr(8217), "'")
