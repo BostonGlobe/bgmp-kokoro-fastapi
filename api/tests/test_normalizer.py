@@ -697,9 +697,8 @@ def test_hyphenated_compounds(text, expected):
 def test_handle_pronunciations_tallied():
     assert (
         handle_pronunciations("Votes were tallied.")
-        == "Votes were [tallied](/tˈælˌid/)\n."
+        == "Votes were [tallied](/tælid/)\n."
     )
     assert (
-        handle_pronunciations("Tallied votes")
-        == "[Tallied](/tˈælˌid/)\n votes"
+        handle_pronunciations("Tallied votes") == "[Tallied](/tælid/)\n votes"
     )
