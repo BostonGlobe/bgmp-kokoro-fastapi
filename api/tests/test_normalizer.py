@@ -562,3 +562,20 @@ def test_normalize_text_acronym_plural():
 )
 def test_handle_pronunciations_keeps_possessive_attached(text, expected):
     assert handle_pronunciations(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Gen Z’s habits", "Gen [Z'S](/zˈiz/) habits"),
+        ("Gen Y’ers say", "Gen [Y'ers](/wˈIəɹz/) say"),
+        ("Gen Xers vote", "Gen [Xers](/ˈɛksəɹz/) vote"),
+        ("Gen X'ers vote", "Gen [X'ers](/ˈɛksəɹz/) vote"),
+        ("straight A's", "straight [A's](/ˈAz/)"),
+        ("Gen Z is here", "Gen Z is here"),
+        ("Hers was red", "Hers was red"),
+        ("I'm sure", "I'm sure"),
+    ],
+)
+def test_normalize_text_single_letter_suffixes(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected

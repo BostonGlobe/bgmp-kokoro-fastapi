@@ -253,6 +253,13 @@ LETTER_PHONEMES = load_json_data("letter_phonemes")
 # "'S" (uppercase) comes from the consonant-plural rewrite earlier in normalize_text.
 ACRONYM_PATTERN = re.compile(r"\b([A-Z]{2,})('[sS]|s)?\b")
 
+# A single capital letter with a possessive or "-ers" suffix: "Gen Z's", "A's",
+# "Gen Y'ers", "Gen Xers". Without an apostrophe, "-ers" is only accepted after
+# X, Y and Z so that real words like "Hers" are left alone.
+SINGLE_LETTER_SUFFIX_PATTERN = re.compile(
+    r"\b([A-Z])('[sS]|'ers|(?<=[XYZ])ers)\b"
+)
+
 # Roman numerals built from I, V, X, L only. C, D and M are left out so that
 # real acronyms like CD, DC, MD and MC are still spelled.
 ROMAN_NUMERAL_PATTERN = re.compile(r"^(?:L?X{0,3})(?:IX|IV|V?I{0,3})$")
@@ -324,11 +331,14 @@ def spell_acronym_phonemes(acronym: str, suffix: str = "") -> str:
     """Spell an acronym letter by letter using Kokoro's inline phoneme syntax.
 
     Every letter but the last gets secondary stress, e.g. NBA -> ˌɛnbˌiˈA.
-    A plural/possessive suffix is voiced according to the final letter name.
+    A plural/possessive suffix is voiced according to the final letter name,
+    and an "-ers" suffix is read as "erz" (Gen Y'ers -> wˈIəɹz).
     """
     letters = [LETTER_PHONEMES[letter] for letter in acronym]
     phonemes = "".join(p.replace("ˈ", "ˌ") for p in letters[:-1]) + letters[-1]
-    if suffix:
+    if suffix.lstrip("'") == "ers":
+        phonemes += "əɹz"
+    elif suffix:
         last = acronym[-1]
         if last in "HSX":
             phonemes += "ᵻz"
@@ -364,7 +374,11 @@ def handle_acronyms(text: str) -> str:
 
         return spell_acronym_phonemes(acronym, suffix)
 
-    return ACRONYM_PATTERN.sub(replace, text)
+    text = ACRONYM_PATTERN.sub(replace, text)
+    return SINGLE_LETTER_SUFFIX_PATTERN.sub(
+        lambda match: spell_acronym_phonemes(match.group(1), match.group(2)),
+        text,
+    )
 
 
 # Remove HTML tags and their content --------------------------------------------------------------
