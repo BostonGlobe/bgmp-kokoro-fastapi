@@ -105,7 +105,7 @@ def test_url_ip_addresses():
             "API at 192.168.1.1:8000",
             normalization_options=NormalizationOptions(),
         )
-        == "API at one hundred and ninety-two dot one hundred and sixty-eight dot one dot one colon eight thousand"
+        == "[API](/ˌApˌiˈI/) at one hundred and ninety-two dot one hundred and sixty-eight dot one dot one colon eight thousand"
     )
     assert (
         normalize_text(
@@ -495,3 +495,70 @@ def test_remaining_symbol():
         )
         == "I love buying products at good store here and at other store"
     )
+
+
+from api.src.services.text_processing.normalizer import handle_acronyms
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("FBI agents", "[FBI](/ˌɛfbˌiˈI/) agents"),
+        ("The NBA finals", "The [NBA](/ˌɛnbˌiˈA/) finals"),
+        ("NASA launched", "NASA launched"),
+    ],
+)
+def test_handle_acronyms_spells_with_phonemes(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("The APIs", "The [APIs](/ˌApˌiˈIz/)"),
+        ("CEOs met", "[CEOs](/sˌiˌiˈOz/) met"),
+        ("CD'S", "[CD'S](/sˌidˈiz/)"),
+        ("the IRS's ruling", "the [IRS's](/ˌIˌɑɹˈɛsᵻz/) ruling"),
+        ("NASA's launch", "NASA's launch"),
+    ],
+)
+def test_handle_acronyms_plurals_and_possessives(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("World War II ended", "World War two ended"),
+        ("Super Bowl LVIII", "Super Bowl fifty-eight"),
+        ("Henry VIII married", "Henry the eighth married"),
+        ("Pope John Paul II", "Pope John Paul the second"),
+        ("an IV drip", "an [IV](/ˌIvˈi/) drip"),
+        ("The IV bag", "The [IV](/ˌIvˈi/) bag"),
+        ("the CD player", "the [CD](/sˌidˈi/) player"),
+    ],
+)
+def test_handle_acronyms_roman_numerals(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+def test_normalize_text_acronym_plural():
+    result = normalize_text("The APIs and FBI agents", NormalizationOptions())
+    assert "[APIs](/ˌApˌiˈIz/)" in result
+    assert "[FBI](/ˌɛfbˌiˈI/)" in result
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("NVIDIA's stock", "[NVIDIA's](/ɛnvˈɪdiəz/)\n stock"),
+        ("Nvidia’s chips", "[Nvidia’s](/ɛnvˈɪdiəz/)\n chips"),
+        ("Lenox's mayor", "[Lenox's](/'lɛnɪksᵻz/)\n mayor"),
+        ("Natick's schools", "[Natick's](/'neɪtɪks/)\n schools"),
+        ("the Celtics' coach", "the [Celtics'](/s'ɛltɪks/)\n coach"),
+        ("visit 'Lenox' soon", "visit '[Lenox](/'lɛnɪks/)\n' soon"),
+        ("NVIDIA chips", "[NVIDIA](/ɛnvˈɪdiə/)\n chips"),
+    ],
+)
+def test_handle_pronunciations_keeps_possessive_attached(text, expected):
+    assert handle_pronunciations(text) == expected

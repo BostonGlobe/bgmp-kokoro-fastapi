@@ -187,6 +187,31 @@ COMMON_ABBREVIATIONS = {
     "Qty.": "Quantity",
 }
 
+# Acronyms pronounced as words; keys are preserved without letter spacing.
+SPOKEN_ACRONYMS = {
+    "NASA": "NASS-uh",
+    "NATO": "NAY-toh",
+    "UNESCO": "yoo-NESS-koh",
+    "UNICEF": "YOO-nih-sef",
+    "OPEC": "OH-pek",
+    "FEMA": "FEE-muh",
+    "NOAA": "NOH-uh",
+    "OSHA": "OH-shuh",
+    "DARPA": "DAR-puh",
+    "SCUBA": "SKOO-buh",
+    "RADAR": "RAY-dar",
+    "SONAR": "SOH-nar",
+    "LASER": "LAY-zer",
+    "LIDAR": "LYE-dar",
+    "RAM": "ram",
+    "ROM": "rom",
+    "PIN": "pin",
+    "CAPTCHA": "KAP-chuh",
+    "GIF": "gif or jif",
+    "SWAT": "swot",
+    "NVIDIA": "en-VID-ee-uh",
+}
+
 # Pre-compiled regex patterns for performance
 EMAIL_PATTERN = re.compile(
     r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}\b", re.IGNORECASE
@@ -240,6 +265,8 @@ DEFAULT_PRONUNCIATION_DICTIONARY = {
     "Tyringham": "/t'aɪərɪŋəm/",
     "Whately": "/'hweɪtli/",
     "Celtics": "/s'ɛltɪks/",
+    "NVIDIA": "/ɛnvˈɪdiə/",
+    "Nvidia": "/ɛnvˈɪdiə/",
 }
 
 INFLECT_ENGINE = inflect.engine()
@@ -259,20 +286,33 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
         str: The text with non-traditional names normalized.
     """
 
-    def preprocess_pronunciation(proper_noun: str, pn_to_ipa: dict):
+    def preprocess_pronunciation(
+        proper_noun: str, possessive: str, pn_to_ipa: dict
+    ):
         """
-        Preprocesses the town name by converting it to the phonetic IPA representation.
+        Converts a proper noun, plus any possessive suffix, to its phonetic IPA form.
 
         Args:
-            town_name (str): The name of the town to preprocess.
+            proper_noun (str): The dictionary word that matched.
+            possessive (str): A trailing "'s" or "'" (straight or curly), or "".
 
         Returns:
-            str: The preprocessed town name.
+            str: The word with its IPA pronunciation, followed by a newline break.
         """
         ipa = pn_to_ipa[proper_noun]
         if not ipa:
-            return proper_noun  # Return the original proper noun if IPA is not available
-        return f"[{proper_noun}]({ipa})\n"
+            # Return the original text if IPA is not available
+            return proper_noun + possessive
+
+        # A bare apostrophe is only possessive after a final s ("Celtics'").
+        # Otherwise it is probably a closing quote, so leave it outside.
+        if possessive in ("'", "’") and not proper_noun.endswith("s"):
+            return f"[{proper_noun}]({ipa})\n{possessive}"
+
+        if possessive in ("'s", "’s"):
+            ipa = f"/{ipa.strip('/')}{possessive_phonemes(ipa)}/"
+
+        return f"[{proper_noun}{possessive}]({ipa})\n"
 
     pn_to_ipa = DEFAULT_PRONUNCIATION_DICTIONARY.copy()
     if pronunciation_dict:
@@ -289,12 +329,32 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
             )
         )
         + r")\b"
+        # Optional possessive: 's (straight or curly), or a bare apostrophe.
+        + r"(?P<possessive>['’]s\b|['’](?!\w))?"
     )
 
-    return pn_pattern.sub(
-        lambda match: preprocess_pronunciation(match.group(0), pn_to_ipa),
-        text,
-    )
+    def replace(match: re.Match[str]) -> str:
+        possessive = match.group("possessive") or ""
+        proper_noun = match.group(0)[: len(match.group(0)) - len(possessive)]
+        return preprocess_pronunciation(proper_noun, possessive, pn_to_ipa)
+
+    return pn_pattern.sub(replace, text)
+
+
+def possessive_phonemes(ipa: str) -> str:
+    """Phonemes for a possessive 's, chosen by the word's final sound.
+
+    "ᵻz" after a sibilant (Lenox's), "s" after a voiceless consonant
+    (Natick's, Rehoboth's), otherwise "z" (NVIDIA's).
+    """
+    final_sound = ipa.strip("/ ").rstrip("ˈˌ'ː")[-1:]
+    if final_sound in ("s", "z", "ʃ", "ʒ", "ʧ", "ʤ") or ipa.rstrip(
+        "/"
+    ).endswith(("tʃ", "dʒ")):
+        return "ᵻz"
+    if final_sound in ("p", "t", "k", "f", "θ"):
+        return "s"
+    return "z"
 
 
 def handle_common_abbreviations(
@@ -325,6 +385,154 @@ def handle_common_abbreviations(
     return pattern.sub(
         lambda match: preprocess_abbreviations(match.group(0)), text
     )
+
+
+# Letter names in Kokoro/misaki phoneme notation (from misaki's us_gold lexicon).
+LETTER_PHONEMES = {
+    "A": "ˈA",
+    "B": "bˈi",
+    "C": "sˈi",
+    "D": "dˈi",
+    "E": "ˈi",
+    "F": "ˈɛf",
+    "G": "ʤˈi",
+    "H": "ˈAʧ",
+    "I": "ˈI",
+    "J": "ʤˈA",
+    "K": "kˈA",
+    "L": "ˈɛl",
+    "M": "ˈɛm",
+    "N": "ˈɛn",
+    "O": "ˈO",
+    "P": "pˈi",
+    "Q": "kjˈu",
+    "R": "ˈɑɹ",
+    "S": "ˈɛs",
+    "T": "tˈi",
+    "U": "jˈu",
+    "V": "vˈi",
+    "W": "dˈʌbᵊlju",
+    "X": "ˈɛks",
+    "Y": "wˈI",
+    "Z": "zˈi",
+}
+
+# An uppercase run, optionally followed by a plural or possessive suffix.
+# "'S" (uppercase) comes from the consonant-plural rewrite earlier in normalize_text.
+ACRONYM_PATTERN = re.compile(r"\b([A-Z]{2,})('[sS]|s)?\b")
+
+# Roman numerals built from I, V, X, L only. C, D and M are left out so that
+# real acronyms like CD, DC, MD and MC are still spelled.
+ROMAN_NUMERAL_PATTERN = re.compile(r"^(?:L?X{0,3})(?:IX|IV|V?I{0,3})$")
+ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50}
+
+# Words after which a Roman numeral is read as a cardinal ("World War two").
+# After any other capitalised word it is read as a regnal ordinal ("Henry the eighth").
+ROMAN_CARDINAL_CONTEXT = {
+    "war",
+    "bowl",
+    "part",
+    "chapter",
+    "act",
+    "volume",
+    "vol",
+    "phase",
+    "title",
+    "article",
+    "section",
+    "book",
+    "round",
+    "level",
+    "type",
+    "class",
+    "stage",
+    "grade",
+    "category",
+    "episode",
+    "season",
+    "series",
+    "appendix",
+    "schedule",
+}
+
+# Sentence-initial words that are capitalised but are not names ("The IV bag").
+ROMAN_NON_NAME_WORDS = {
+    "the",
+    "a",
+    "an",
+    "this",
+    "that",
+    "these",
+    "those",
+    "his",
+    "her",
+    "their",
+    "its",
+    "our",
+    "my",
+    "your",
+    "no",
+    "each",
+    "every",
+    "and",
+    "or",
+    "but",
+}
+
+
+def roman_to_int(numeral: str) -> int:
+    total = 0
+    for current, following in zip(numeral, numeral[1:] + " "):
+        value = ROMAN_VALUES[current]
+        total += -value if ROMAN_VALUES.get(following, 0) > value else value
+    return total
+
+
+def spell_acronym_phonemes(acronym: str, suffix: str = "") -> str:
+    """Spell an acronym letter by letter using Kokoro's inline phoneme syntax.
+
+    Every letter but the last gets secondary stress, e.g. NBA -> ˌɛnbˌiˈA.
+    A plural/possessive suffix is voiced according to the final letter name.
+    """
+    letters = [LETTER_PHONEMES[letter] for letter in acronym]
+    phonemes = "".join(p.replace("ˈ", "ˌ") for p in letters[:-1]) + letters[-1]
+    if suffix:
+        last = acronym[-1]
+        if last in "HSX":
+            phonemes += "ᵻz"
+        elif last == "F":
+            phonemes += "s"
+        else:
+            phonemes += "z"
+    return f"[{acronym}{suffix}](/{phonemes}/)"
+
+
+def handle_acronyms(text: str) -> str:
+    """Spell out uppercase acronyms, except spoken acronyms and Roman numerals."""
+
+    def replace(match: re.Match[str]) -> str:
+        acronym, suffix = match.group(1), match.group(2) or ""
+
+        if acronym in SPOKEN_ACRONYMS:
+            return match.group(0)
+
+        # Roman numerals directly after a capitalised word: "World War II", "Henry VIII".
+        if not suffix and ROMAN_NUMERAL_PATTERN.match(acronym):
+            previous = re.search(
+                r"\b([A-Z][A-Za-z]*)\.?\s+$", text[: match.start()]
+            )
+            if (
+                previous
+                and previous.group(1).lower() not in ROMAN_NON_NAME_WORDS
+            ):
+                value = roman_to_int(acronym)
+                if previous.group(1).lower() in ROMAN_CARDINAL_CONTEXT:
+                    return INFLECT_ENGINE.number_to_words(value)
+                return f"the {INFLECT_ENGINE.number_to_words(INFLECT_ENGINE.ordinal(value))}"
+
+        return spell_acronym_phonemes(acronym, suffix)
+
+    return ACRONYM_PATTERN.sub(replace, text)
 
 
 # Remove HTML tags and their content --------------------------------------------------------------
@@ -754,6 +962,8 @@ def normalize_text(
         text,
     )
     text = re.sub(r"(?i)(?<=[A-Z])\.(?=[A-Z])", "-", text)
+
+    text = handle_acronyms(text)
 
     text = re.sub(r"\s{2,}", " ", text)
 
