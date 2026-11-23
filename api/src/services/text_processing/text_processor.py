@@ -16,6 +16,14 @@ from .vocabulary import tokenize
 # Updated regex to be more strict and avoid matching isolated brackets
 # Only matches complete patterns like [word](/ipa/) and prevents catastrophic backtracking
 CUSTOM_PHONEMES = re.compile(r"(\[[^\[\]]*?\]\(\/[^\/\(\)]*?\/\))")
+# A custom phoneme link glued to anything other than whitespace or a single
+# punctuation mark, e.g. "[A's](/ˈAz/);-" after comma pacing. misaki misaligns
+# every later link in the sentence when this happens (the next link's phonemes
+# land on the wrong word and the following word is dropped), so a space is
+# inserted after the link.
+CUSTOM_PHONEMES_GLUED = re.compile(
+    r"(\[[^\[\]]*?\]\(\/[^\/\(\)]*?\/\))(?=[^\s.,!?;:]|[.,!?;:]\S)"
+)
 # Pattern to find pause tags like [pause:0.5s]
 PAUSE_TAG_PATTERN = re.compile(r"\[pause:(\d+(?:\.\d+)?)s\]", re.IGNORECASE)
 
@@ -193,6 +201,9 @@ async def smart_split(
                         )
 
                     processed_text = "".join(processed_text).strip()
+                    processed_text = CUSTOM_PHONEMES_GLUED.sub(
+                        r"\1 ", processed_text
+                    )
                 else:
                     logger.info(
                         "Skipping text normalization as it is only supported for english"
