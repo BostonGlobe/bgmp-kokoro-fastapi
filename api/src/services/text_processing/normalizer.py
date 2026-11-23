@@ -401,6 +401,38 @@ def handle_comma_pacing(text):
     return text
 
 
+HYPHENATED_COMPOUND_PATTERN = re.compile(r"\b[A-Za-z]+(?:-[A-Za-z]+)+\b")
+
+
+def handle_hyphenated_compounds(text: str) -> str:
+    """Split a hyphenated compound where the parts would run together.
+
+    misaki reads a hyphenated compound as one word, so a final consonant
+    slides onto a following vowel: "distinctive-yet-easily" is heard as
+    "distinctive yet teasily". The whole compound is split into separate words
+    when any joint has a left part ending in a consonant and a right part
+    starting with a vowel, both at least three letters. Short prefixes and
+    parts ("re-enter", "co-op", "x-ray", "follow-up") and number words
+    ("twenty-eight") are left alone.
+    """
+
+    def runs_together(left: str, right: str) -> bool:
+        return (
+            len(left) >= 3
+            and len(right) >= 3
+            and left[-1].lower() not in "aeiouwy"
+            and right[0].lower() in "aeiou"
+        )
+
+    def split(match: re.Match[str]) -> str:
+        parts = match.group(0).split("-")
+        if any(runs_together(a, b) for a, b in zip(parts, parts[1:])):
+            return " ".join(parts)
+        return match.group(0)
+
+    return HYPHENATED_COMPOUND_PATTERN.sub(split, text)
+
+
 def handle_slashes(text):
     # Add spaces around slashes in the text for better readability
     # Example: Convert "and/or" to "and / or"
@@ -925,6 +957,8 @@ def normalize_text(
         text,
     )
     text = re.sub(r"(?i)(?<=[A-Z])\.(?=[A-Z])", "-", text)
+
+    text = handle_hyphenated_compounds(text)
 
     text = handle_acronyms(text)
 

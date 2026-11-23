@@ -673,3 +673,33 @@ def test_date_ordinals(text, expected):
 def test_date_ordinals_can_be_disabled():
     options = NormalizationOptions(date_ordinal_normalization=False)
     assert normalize_text("November 5", options) == "November five"
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "a distinctive-yet-easily remembered logo",
+            "a distinctive yet easily remembered logo",
+        ),
+        ("high self-esteem", "high self esteem"),
+        ("re-enter the room", "re-enter the room"),
+        ("a co-op and an x-ray", "a co-op and an x-ray"),
+        ("a well-known follow-up", "a well-known follow-up"),
+        ("state-of-the-art", "state-of-the-art"),
+        ("28 people", "twenty-eight people"),
+    ],
+)
+def test_hyphenated_compounds(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+def test_handle_pronunciations_tallied():
+    assert (
+        handle_pronunciations("Votes were tallied.")
+        == "Votes were [tallied](/tˈælˌid/)\n."
+    )
+    assert (
+        handle_pronunciations("Tallied votes")
+        == "[Tallied](/tˈælˌid/)\n votes"
+    )
