@@ -72,7 +72,7 @@ async def test_smart_custom_phenomes():
     # First chunk: text
     assert chunks[0][2] is None  # No pause
     assert (
-        "This is a short test sentence. [Kokoro](/kˈOkəɹO/) has a feature called custom phenomes. This is made possible by [Misaki](/misˈɑki/);- the custom phenomizer that [Kokoro](/kˈOkəɹO/) version one uses"
+        "This is a short test sentence. [Kokoro](/kˈOkəɹO/) has a feature called custom phenomes. This is made possible by [Misaki](/misˈɑki/) ;- the custom phenomizer that [Kokoro](/kˈOkəɹO/) version one uses"
         in chunks[0][0]
     )
     assert len(chunks[0][1]) > 0
@@ -245,3 +245,28 @@ async def test_smart_split_with_two_pause():
     assert chunks[2][2] is None  # No pause
     assert "zero point five" in chunks[2][0]
     assert len(chunks[2][1]) > 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        # Comma pacing turns "," into ";-", which must not touch the link
+        (
+            "straight A’s, said that NVIDIA’s first chip.",
+            "straight [A's](/ˈAz/) ;- said that [NVIDIA’s](/ɛnvˈɪdiəz/) first chip.",
+        ),
+        # A single punctuation mark followed by a space stays attached
+        (
+            "He met the FBI. Then he left.",
+            "He met the [FBI](/ˌɛfbˌiˈI/). Then he left.",
+        ),
+        # Sentence-final punctuation stays attached
+        ("He met the FBI.", "He met the [FBI](/ˌɛfbˌiˈI/)."),
+    ],
+)
+async def test_smart_split_separates_links_from_glued_punctuation(
+    text, expected
+):
+    chunks = [chunk async for chunk, _, _ in smart_split(text)]
+    assert chunks == [expected]

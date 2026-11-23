@@ -99,6 +99,14 @@ class NormalizationOptions(BaseModel):
         default=True,
         description="Replaces number abbreviations like No. 1 with 'Number one' to improve pronunciation.",
     )
+    date_ordinal_normalization: bool = Field(
+        default=True,
+        description="Reads the day in dates as an ordinal, e.g. 'November 5' as 'November fifth'.",
+    )
+    radio_station_normalization: bool = Field(
+        default=True,
+        description="Reads radio station frequencies the way stations say them, e.g. 'Kiss 108' as 'Kiss one oh eight' and '106.7 FM' as 'one oh six point seven FM'.",
+    )
     pronunciation_normalization: bool = Field(
         default=True,
         description="Replaces a preset dictionary of words with their International Phonetic Alphabet spellings to override the default pronunciation.",

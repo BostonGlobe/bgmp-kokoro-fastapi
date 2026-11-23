@@ -105,7 +105,7 @@ def test_url_ip_addresses():
             "API at 192.168.1.1:8000",
             normalization_options=NormalizationOptions(),
         )
-        == "API at one hundred and ninety-two dot one hundred and sixty-eight dot one dot one colon eight thousand"
+        == "[API](/ˌApˌiˈI/) at one hundred and ninety-two dot one hundred and sixty-eight dot one dot one colon eight thousand"
     )
     assert (
         normalize_text(
@@ -418,7 +418,7 @@ def test_number():
             "There are 1300 products left in stock",
             normalization_options=NormalizationOptions(),
         )
-        == "There are one thousand;- three hundred products left in stock"
+        == "There are one thousand three hundred products left in stock"
     )
 
     assert (
@@ -426,7 +426,7 @@ def test_number():
             "The population is 7,890,000 people.",
             normalization_options=NormalizationOptions(),
         )
-        == "The population is seven million;- eight hundred and ninety thousand people."
+        == "The population is seven million eight hundred and ninety thousand people."
     )
 
     assert (
@@ -494,4 +494,212 @@ def test_remaining_symbol():
             normalization_options=NormalizationOptions(),
         )
         == "I love buying products at good store here and at other store"
+    )
+
+
+from api.src.services.text_processing.normalizer import handle_acronyms
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("FBI agents", "[FBI](/ˌɛfbˌiˈI/) agents"),
+        ("The NBA finals", "The [NBA](/ˌɛnbˌiˈA/) finals"),
+        ("NASA launched", "NASA launched"),
+    ],
+)
+def test_handle_acronyms_spells_with_phonemes(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("The APIs", "The [APIs](/ˌApˌiˈIz/)"),
+        ("CEOs met", "[CEOs](/sˌiˌiˈOz/) met"),
+        ("CD'S", "[CD'S](/sˌidˈiz/)"),
+        ("the IRS's ruling", "the [IRS's](/ˌIˌɑɹˈɛsᵻz/) ruling"),
+        ("NASA's launch", "NASA's launch"),
+    ],
+)
+def test_handle_acronyms_plurals_and_possessives(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("World War II ended", "World War two ended"),
+        ("Super Bowl LVIII", "Super Bowl fifty-eight"),
+        ("Henry VIII married", "Henry the eighth married"),
+        ("Pope John Paul II", "Pope John Paul the second"),
+        ("an IV drip", "an [IV](/ˌIvˈi/) drip"),
+        ("The IV bag", "The [IV](/ˌIvˈi/) bag"),
+        ("the CD player", "the [CD](/sˌidˈi/) player"),
+    ],
+)
+def test_handle_acronyms_roman_numerals(text, expected):
+    assert handle_acronyms(text) == expected
+
+
+def test_normalize_text_acronym_plural():
+    result = normalize_text("The APIs and FBI agents", NormalizationOptions())
+    assert "[APIs](/ˌApˌiˈIz/)" in result
+    assert "[FBI](/ˌɛfbˌiˈI/)" in result
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("NVIDIA's stock", "[NVIDIA's](/ɛnvˈɪdiəz/)\n stock"),
+        ("Nvidia’s chips", "[Nvidia’s](/ɛnvˈɪdiəz/)\n chips"),
+        ("Lenox's mayor", "[Lenox's](/'lɛnɪksᵻz/)\n mayor"),
+        ("Natick's schools", "[Natick's](/'neɪtɪks/)\n schools"),
+        ("the Celtics' coach", "the [Celtics'](/s'ɛltɪks/)\n coach"),
+        ("visit 'Lenox' soon", "visit '[Lenox](/'lɛnɪks/)\n' soon"),
+        ("NVIDIA chips", "[NVIDIA](/ɛnvˈɪdiə/)\n chips"),
+    ],
+)
+def test_handle_pronunciations_keeps_possessive_attached(text, expected):
+    assert handle_pronunciations(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("Gen Z’s habits", "Gen [Z'S](/zˈiz/) habits"),
+        ("Gen Y’ers say", "Gen [Y'ers](/wˈIəɹz/) say"),
+        ("Gen Xers vote", "Gen [Xers](/ˈɛksəɹz/) vote"),
+        ("Gen X'ers vote", "Gen [X'ers](/ˈɛksəɹz/) vote"),
+        ("straight A's", "straight [A's](/ˈAz/)"),
+        ("Gen Z is here", "Gen Z is here"),
+        ("Hers was red", "Hers was red"),
+        ("I'm sure", "I'm sure"),
+    ],
+)
+def test_normalize_text_single_letter_suffixes(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("built in 1605", "built in sixteen oh five"),
+        ("passed in 2013", "passed in two thousand thirteen"),
+        ("by 1900", "by nineteen hundred"),
+        ("in 1984", "in nineteen eighty-four"),
+        ("in 2025", "in twenty twenty-five"),
+    ],
+)
+def test_years(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "It costs $2,600 a month.",
+            "It costs two thousand six hundred dollars a month.",
+        ),
+        (
+            "It costs $1,250,000.",
+            "It costs one million two hundred and fifty thousand dollars.",
+        ),
+    ],
+)
+def test_large_numbers_have_no_pause(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "Tune in to Kiss 108 tonight.",
+            "Tune in to Kiss one oh eight tonight.",
+        ),
+        ("Listen to Magic 106.7.", "Listen to Magic one oh six point seven."),
+        ("Try 101.7 FM.", "Try one oh one point seven [FM](/ˌɛfˈɛm/)."),
+        ("Try 98.5 FM.", "Try ninety-eight point five [FM](/ˌɛfˈɛm/)."),
+        ("Room 108 is free.", "Room one hundred and eight is free."),
+    ],
+)
+def test_radio_stations(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "Call (617) 798-0874 now.",
+            "Call six one seven;- seven nine eight;- oh eight seven four now.",
+        ),
+        (
+            "Call 617-798-0874.",
+            "Call six one seven;- seven nine eight;- oh eight seven four.",
+        ),
+        (
+            "Call +1 617 798 0874.",
+            "Call one;- six one seven;- seven nine eight;- oh eight seven four.",
+        ),
+    ],
+)
+def test_phone_numbers(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("The vote is on November 5.", "The vote is on November fifth."),
+        (
+            "Nov. 1 and March 22, 2025",
+            "November first and March twenty-second;- twenty twenty-five",
+        ),
+        ("Jan. 23-25", "January twenty-third to twenty-fifth"),
+        ("the 5th of November", "the fifth of November"),
+        ("On 3 May we met.", "On the third of May we met."),
+        ("In May 2025 it rained.", "In May twenty twenty-five it rained."),
+        ("May 5:30 pm", "May five thirty pm"),
+        ("March 3 to 40 people", "March third to forty people"),
+    ],
+)
+def test_date_ordinals(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+def test_date_ordinals_can_be_disabled():
+    options = NormalizationOptions(date_ordinal_normalization=False)
+    assert normalize_text("November 5", options) == "November five"
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "a distinctive-yet-easily remembered logo",
+            "a distinctive yet easily remembered logo",
+        ),
+        ("high self-esteem", "high self esteem"),
+        ("re-enter the room", "re-enter the room"),
+        ("a co-op and an x-ray", "a co-op and an x-ray"),
+        ("a well-known follow-up", "a well-known follow-up"),
+        ("state-of-the-art", "state-of-the-art"),
+        ("28 people", "twenty-eight people"),
+    ],
+)
+def test_hyphenated_compounds(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+def test_handle_pronunciations_tallied():
+    assert (
+        handle_pronunciations("Votes were tallied.")
+        == "Votes were [tallied](/tˈælˌid/)\n."
+    )
+    assert (
+        handle_pronunciations("Tallied votes")
+        == "[Tallied](/tˈælˌid/)\n votes"
     )

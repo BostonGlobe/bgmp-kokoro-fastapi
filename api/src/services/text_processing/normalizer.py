@@ -4,9 +4,11 @@ Handles various text formats including URLs, emails, numbers, money, and special
 Converts them into a format suitable for text-to-speech processing.
 """
 
+import json
 import math
 import re
 from functools import lru_cache
+from pathlib import Path
 from typing import List, Optional, Union
 
 import inflect
@@ -16,6 +18,15 @@ from numpy import number
 from torch import mul
 
 from ...structures.schemas import NormalizationOptions
+
+DATA_DIR = Path(__file__).parent / "data"
+
+
+def load_json_data(name: str) -> dict:
+    """Load a lookup table from data/<name>.json, preserving key order."""
+    with open(DATA_DIR / f"{name}.json", encoding="utf-8") as file:
+        return json.load(file)
+
 
 # Constants
 VALID_TLDS = [
@@ -61,102 +72,23 @@ VALID_TLDS = [
     "co",
 ]
 
-VALID_UNITS = {
-    "m": "meter",
-    "cm": "centimeter",
-    "mm": "millimeter",
-    "km": "kilometer",
-    "in": "inch",
-    "ft": "foot",
-    "yd": "yard",
-    "mi": "mile",  # Length
-    "g": "gram",
-    "kg": "kilogram",
-    "mg": "milligram",  # Mass
-    "s": "second",
-    "ms": "millisecond",
-    "min": "minutes",
-    "h": "hour",  # Time
-    "l": "liter",
-    "ml": "mililiter",
-    "cl": "centiliter",
-    "dl": "deciliter",  # Volume
-    "kph": "kilometer per hour",
-    "mph": "mile per hour",
-    "mi/h": "mile per hour",
-    "m/s": "meter per second",
-    "km/h": "kilometer per hour",
-    "mm/s": "milimeter per second",
-    "cm/s": "centimeter per second",
-    "ft/s": "feet per second",
-    "cm/h": "centimeter per day",  # Speed
-    "°c": "degree celsius",
-    "c": "degree celsius",
-    "°f": "degree fahrenheit",
-    "f": "degree fahrenheit",
-    "k": "kelvin",  # Temperature
-    "pa": "pascal",
-    "kpa": "kilopascal",
-    "mpa": "megapascal",
-    "atm": "atmosphere",  # Pressure
-    "hz": "hertz",
-    "khz": "kilohertz",
-    "mhz": "megahertz",
-    "ghz": "gigahertz",  # Frequency
-    "v": "volt",
-    "kv": "kilovolt",
-    "mv": "mergavolt",  # Voltage
-    "a": "amp",
-    "ma": "megaamp",
-    "ka": "kiloamp",  # Current
-    "w": "watt",
-    "kw": "kilowatt",
-    "mw": "megawatt",  # Power
-    "j": "joule",
-    "kj": "kilojoule",
-    "mj": "megajoule",  # Energy
-    "Ω": "ohm",
-    "kΩ": "kiloohm",
-    "mΩ": "megaohm",  # Resistance (Ohm)
-    "f": "farad",
-    "µf": "microfarad",
-    "nf": "nanofarad",
-    "pf": "picofarad",  # Capacitance
-    "b": "bit",
-    "kb": "kilobit",
-    "mb": "megabit",
-    "gb": "gigabit",
-    "tb": "terabit",
-    "pb": "petabit",  # Data size
-    "kbps": "kilobit per second",
-    "mbps": "megabit per second",
-    "gbps": "gigabit per second",
-    "tbps": "terabit per second",
-    "px": "pixel",  # CSS units
-}
+VALID_UNITS = load_json_data("valid_units")
 
-SYMBOL_REPLACEMENTS = {
-    "~": " ",
-    "@": " at ",
-    "#": " number ",
-    "$": " dollar ",
-    "%": " percent ",
-    "^": " ",
-    "&": " and ",
-    "*": " ",
-    "_": " ",
-    "|": " ",
-    "\\": " ",
-    "/": " slash ",
-    "=": " equals ",
-    "+": " plus ",
-}
+SYMBOL_REPLACEMENTS = load_json_data("symbol_replacements")
 
 MONEY_UNITS = {
-    "$": ("dollar", "cent"),
-    "£": ("pound", "pence"),
-    "€": ("euro", "cent"),
+    symbol: tuple(names)
+    for symbol, names in load_json_data("money_units").items()
 }
+
+COMMON_ABBREVIATIONS = load_json_data("common_abbreviations")
+
+MONTH_ABBREVIATIONS = load_json_data("month_abbreviations")
+
+MULTIPLIER_TRANSLATION = load_json_data("multiplier_translation")
+
+# Acronyms pronounced as words; keys are preserved without letter spacing.
+SPOKEN_ACRONYMS = load_json_data("spoken_acronyms")
 
 # Pre-compiled regex patterns for performance
 EMAIL_PATTERN = re.compile(
@@ -192,44 +124,9 @@ NUMBER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-DEFAULT_PRONUNCIATION_DICTIONARY = {
-    "Agawam": "/'æɡəwɒm/",
-    "Attleboro": "/'ætəlbɹə/",
-    "Attleborough": "/'ætəlbɹə/",
-    "Ayer": "/ˈɛɹ/",
-    "Billerica": "/bɪl'ɹɪkə/",
-    "Cohasset": "/koʊ'hæs ɪt/",
-    "Lenox": "/'lɛnɪks/",
-    "Leominster": "/'lɛm ən stər/",
-    "Nahant": "/nə'hɑnt/",
-    "Natick": "/'neɪtɪk/",
-    "Petersham": "/'piːtərsæm/",
-    "Rehoboth": "/rɪ'hoʊ bəθ/",
-    "Rowley": "/'ɹæuli/",
-    "Scituate": "/'sɪtʃ u ət/",
-    "Stoughton": "/'stoʊtən/",
-    "Tyringham": "/t'aɪərɪŋəm/",
-    "Whately": "/'hweɪtli/",
-    "Celtics": "/s'ɛltɪks/",
-    "Saddam": "/sæ'dɑːm/",
-    "Hussein": "/hʊ'seɪn/",
-    "Kelce": "/kɛlsi/",
-    "Fallon": "/fælən/",
-    "Affleck": "/æflɛk/",
-    "Beth": "/bɛ θ/",
-    "Buttigieg": "/'butədʒədʒ/",
-    "Volodymyr": "/vɒlə'dɪmɪər/",
-    "Zelenskyy": "/zɪ'lɛnski/",
-    "Xi": "/'ʃiː/",
-    "Luiz Inácio Lula da Silva": "/lu'iz i'nasju 'lulɐ da 'siwvɐ/",
-    "Malden": "/'mɑldən/",
-    "Fatah": "/'fatah/",
-    "Ramallah": "/rə'mɑːlə/",
-    "Qatar": "/kə'tɑːr/",
-    "Kyiv": "/'kiːɪv/",
-    "Epstein": "/'ɛpstiːn/",
-    "tallied": "/tælid/",
-}
+DEFAULT_PRONUNCIATION_DICTIONARY = load_json_data(
+    "default_pronunciation_dictionary"
+)
 
 INFLECT_ENGINE = inflect.engine()
 
@@ -248,20 +145,33 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
         str: The text with non-traditional names normalized.
     """
 
-    def preprocess_pronunciation(proper_noun: str, pn_to_ipa: dict):
+    def preprocess_pronunciation(
+        proper_noun: str, possessive: str, pn_to_ipa: dict
+    ):
         """
-        Preprocesses the town name by converting it to the phonetic IPA representation.
+        Converts a proper noun, plus any possessive suffix, to its phonetic IPA form.
 
         Args:
-            town_name (str): The name of the town to preprocess.
+            proper_noun (str): The dictionary word that matched.
+            possessive (str): A trailing "'s" or "'" (straight or curly), or "".
 
         Returns:
-            str: The preprocessed town name.
+            str: The word with its IPA pronunciation, followed by a newline break.
         """
         ipa = pn_to_ipa[proper_noun]
         if not ipa:
-            return proper_noun  # Return the original proper noun if IPA is not available
-        return f"[{proper_noun}]({ipa})\n"
+            # Return the original text if IPA is not available
+            return proper_noun + possessive
+
+        # A bare apostrophe is only possessive after a final s ("Celtics'").
+        # Otherwise it is probably a closing quote, so leave it outside.
+        if possessive in ("'", "’") and not proper_noun.endswith("s"):
+            return f"[{proper_noun}]({ipa})\n{possessive}"
+
+        if possessive in ("'s", "’s"):
+            ipa = f"/{ipa.strip('/')}{possessive_phonemes(ipa)}/"
+
+        return f"[{proper_noun}{possessive}]({ipa})\n"
 
     pn_to_ipa = DEFAULT_PRONUNCIATION_DICTIONARY.copy()
     if pronunciation_dict:
@@ -278,10 +188,195 @@ def handle_pronunciations(text: str, pronunciation_dict: dict = None) -> str:
             )
         )
         + r")\b"
+        # Optional possessive: 's (straight or curly), or a bare apostrophe.
+        + r"(?P<possessive>['’]s\b|['’](?!\w))?"
     )
 
-    return pn_pattern.sub(
-        lambda match: preprocess_pronunciation(match.group(0), pn_to_ipa),
+    def replace(match: re.Match[str]) -> str:
+        possessive = match.group("possessive") or ""
+        proper_noun = match.group(0)[: len(match.group(0)) - len(possessive)]
+        return preprocess_pronunciation(proper_noun, possessive, pn_to_ipa)
+
+    return pn_pattern.sub(replace, text)
+
+
+def possessive_phonemes(ipa: str) -> str:
+    """Phonemes for a possessive 's, chosen by the word's final sound.
+
+    "ᵻz" after a sibilant (Lenox's), "s" after a voiceless consonant
+    (Natick's, Rehoboth's), otherwise "z" (NVIDIA's).
+    """
+    final_sound = ipa.strip("/ ").rstrip("ˈˌ'ː")[-1:]
+    if final_sound in ("s", "z", "ʃ", "ʒ", "ʧ", "ʤ") or ipa.rstrip(
+        "/"
+    ).endswith(("tʃ", "dʒ")):
+        return "ᵻz"
+    if final_sound in ("p", "t", "k", "f", "θ"):
+        return "s"
+    return "z"
+
+
+def handle_common_abbreviations(
+    text, abbreviations_dict: dict = COMMON_ABBREVIATIONS
+) -> str:
+    """
+    Expand common abbreviations into the full word
+    """
+
+    def preprocess_abbreviations(abbreviation: str):
+        return abbreviations_dict[abbreviation]
+
+    # Match the exact known abbreviations
+    pattern = re.compile(
+        r"\b(?:"
+        + "|".join(
+            sorted(
+                (
+                    re.escape(abbreviation.strip())
+                    for abbreviation in abbreviations_dict.keys()
+                ),
+                key=len,
+                reverse=True,
+            )
+        )
+        + r")(?!\w)"
+    )
+    return pattern.sub(
+        lambda match: preprocess_abbreviations(match.group(0)), text
+    )
+
+
+# Letter names in Kokoro/misaki phoneme notation (from misaki's us_gold lexicon).
+LETTER_PHONEMES = load_json_data("letter_phonemes")
+
+# An uppercase run, optionally followed by a plural or possessive suffix.
+# "'S" (uppercase) comes from the consonant-plural rewrite earlier in normalize_text.
+ACRONYM_PATTERN = re.compile(r"\b([A-Z]{2,})('[sS]|s)?\b")
+
+# A single capital letter with a possessive or "-ers" suffix: "Gen Z's", "A's",
+# "Gen Y'ers", "Gen Xers". Without an apostrophe, "-ers" is only accepted after
+# X, Y and Z so that real words like "Hers" are left alone.
+SINGLE_LETTER_SUFFIX_PATTERN = re.compile(
+    r"\b([A-Z])('[sS]|'ers|(?<=[XYZ])ers)\b"
+)
+
+# Roman numerals built from I, V, X, L only. C, D and M are left out so that
+# real acronyms like CD, DC, MD and MC are still spelled.
+ROMAN_NUMERAL_PATTERN = re.compile(r"^(?:L?X{0,3})(?:IX|IV|V?I{0,3})$")
+ROMAN_VALUES = load_json_data("roman_values")
+
+# Words after which a Roman numeral is read as a cardinal ("World War two").
+# After any other capitalised word it is read as a regnal ordinal ("Henry the eighth").
+ROMAN_CARDINAL_CONTEXT = {
+    "war",
+    "bowl",
+    "part",
+    "chapter",
+    "act",
+    "volume",
+    "vol",
+    "phase",
+    "title",
+    "article",
+    "section",
+    "book",
+    "round",
+    "level",
+    "type",
+    "class",
+    "stage",
+    "grade",
+    "category",
+    "episode",
+    "season",
+    "series",
+    "appendix",
+    "schedule",
+}
+
+# Sentence-initial words that are capitalised but are not names ("The IV bag").
+ROMAN_NON_NAME_WORDS = {
+    "the",
+    "a",
+    "an",
+    "this",
+    "that",
+    "these",
+    "those",
+    "his",
+    "her",
+    "their",
+    "its",
+    "our",
+    "my",
+    "your",
+    "no",
+    "each",
+    "every",
+    "and",
+    "or",
+    "but",
+}
+
+
+def roman_to_int(numeral: str) -> int:
+    total = 0
+    for current, following in zip(numeral, numeral[1:] + " "):
+        value = ROMAN_VALUES[current]
+        total += -value if ROMAN_VALUES.get(following, 0) > value else value
+    return total
+
+
+def spell_acronym_phonemes(acronym: str, suffix: str = "") -> str:
+    """Spell an acronym letter by letter using Kokoro's inline phoneme syntax.
+
+    Every letter but the last gets secondary stress, e.g. NBA -> ˌɛnbˌiˈA.
+    A plural/possessive suffix is voiced according to the final letter name,
+    and an "-ers" suffix is read as "erz" (Gen Y'ers -> wˈIəɹz).
+    """
+    letters = [LETTER_PHONEMES[letter] for letter in acronym]
+    phonemes = "".join(p.replace("ˈ", "ˌ") for p in letters[:-1]) + letters[-1]
+    if suffix.lstrip("'") == "ers":
+        phonemes += "əɹz"
+    elif suffix:
+        last = acronym[-1]
+        if last in "HSX":
+            phonemes += "ᵻz"
+        elif last == "F":
+            phonemes += "s"
+        else:
+            phonemes += "z"
+    return f"[{acronym}{suffix}](/{phonemes}/)"
+
+
+def handle_acronyms(text: str) -> str:
+    """Spell out uppercase acronyms, except spoken acronyms and Roman numerals."""
+
+    def replace(match: re.Match[str]) -> str:
+        acronym, suffix = match.group(1), match.group(2) or ""
+
+        if acronym in SPOKEN_ACRONYMS:
+            return match.group(0)
+
+        # Roman numerals directly after a capitalised word: "World War II", "Henry VIII".
+        if not suffix and ROMAN_NUMERAL_PATTERN.match(acronym):
+            previous = re.search(
+                r"\b([A-Z][A-Za-z]*)\.?\s+$", text[: match.start()]
+            )
+            if (
+                previous
+                and previous.group(1).lower() not in ROMAN_NON_NAME_WORDS
+            ):
+                value = roman_to_int(acronym)
+                if previous.group(1).lower() in ROMAN_CARDINAL_CONTEXT:
+                    return INFLECT_ENGINE.number_to_words(value)
+                return f"the {INFLECT_ENGINE.number_to_words(INFLECT_ENGINE.ordinal(value))}"
+
+        return spell_acronym_phonemes(acronym, suffix)
+
+    text = ACRONYM_PATTERN.sub(replace, text)
+    return SINGLE_LETTER_SUFFIX_PATTERN.sub(
+        lambda match: spell_acronym_phonemes(match.group(1), match.group(2)),
         text,
     )
 
@@ -306,6 +401,38 @@ def handle_comma_pacing(text):
     return text
 
 
+HYPHENATED_COMPOUND_PATTERN = re.compile(r"\b[A-Za-z]+(?:-[A-Za-z]+)+\b")
+
+
+def handle_hyphenated_compounds(text: str) -> str:
+    """Split a hyphenated compound where the parts would run together.
+
+    misaki reads a hyphenated compound as one word, so a final consonant
+    slides onto a following vowel: "distinctive-yet-easily" is heard as
+    "distinctive yet teasily". The whole compound is split into separate words
+    when any joint has a left part ending in a consonant and a right part
+    starting with a vowel, both at least three letters. Short prefixes and
+    parts ("re-enter", "co-op", "x-ray", "follow-up") and number words
+    ("twenty-eight") are left alone.
+    """
+
+    def runs_together(left: str, right: str) -> bool:
+        return (
+            len(left) >= 3
+            and len(right) >= 3
+            and left[-1].lower() not in "aeiouwy"
+            and right[0].lower() in "aeiou"
+        )
+
+    def split(match: re.Match[str]) -> str:
+        parts = match.group(0).split("-")
+        if any(runs_together(a, b) for a, b in zip(parts, parts[1:])):
+            return " ".join(parts)
+        return match.group(0)
+
+    return HYPHENATED_COMPOUND_PATTERN.sub(split, text)
+
+
 def handle_slashes(text):
     # Add spaces around slashes in the text for better readability
     # Example: Convert "and/or" to "and / or"
@@ -317,21 +444,7 @@ def handle_slashes(text):
 def handle_month_abbreviations(text):
     # Normalize dates in the text
     # Example: Convert "Jan. 23, 2025" to "January 23, 2025"
-    month_abbreviations = {
-        "Jan.": "January",
-        "Feb.": "February",
-        "Mar.": "March",
-        "Apr.": "April",
-        "May.": "May",
-        "Jun.": "June",
-        "Jul.": "July",
-        "Aug.": "August",
-        "Sep.": "September",
-        "Oct.": "October",
-        "Nov.": "November",
-        "Dec.": "December",
-    }
-    for abbr, full in month_abbreviations.items():
+    for abbr, full in MONTH_ABBREVIATIONS.items():
         text = text.replace(abbr, full)
     return text
 
@@ -375,6 +488,106 @@ def handle_number_abbreviations(text):
     )
 
 
+MONTH_NAMES = "January|February|March|April|May|June|July|August|September|October|November|December"
+ORDINAL_SUFFIX = r"(?:st|nd|rd|th)?"
+# A day number that is not part of a time, decimal or percentage.
+DAY = rf"(\d{{1,2}}){ORDINAL_SUFFIX}\b(?![:.]\d|%)"
+
+# "November 5", "November 5th", "November 5 to 7", "March 3-4"
+MONTH_DAY_PATTERN = re.compile(
+    rf"\b({MONTH_NAMES})\s+{DAY}(?:(\s*(?:-|–|to|through|and)\s*){DAY})?"
+)
+# "5 November", "the 5th of November"
+DAY_MONTH_PATTERN = re.compile(
+    rf"\b(?:([Tt]he)\s+)?{DAY}\s+(?:of\s+)?({MONTH_NAMES})\b"
+)
+
+
+def ordinal_words(day: int) -> str:
+    return INFLECT_ENGINE.number_to_words(INFLECT_ENGINE.ordinal(day))
+
+
+def handle_date_ordinals(text: str) -> str:
+    """Read the day in a date as an ordinal.
+
+    "November 5" -> "November fifth", "March 3-4" -> "March third to fourth",
+    "5 November" -> "the fifth of November".
+    """
+
+    def month_day(m: re.Match[str]) -> str:
+        month, day, joiner, end_day = m.groups()
+        if not 1 <= int(day) <= 31:
+            return m.group(0)
+        result = f"{month} {ordinal_words(int(day))}"
+        if end_day:
+            if 1 <= int(end_day) <= 31:
+                joiner = joiner.strip()
+                joiner = "to" if joiner in ("-", "–") else joiner
+                return f"{result} {joiner} {ordinal_words(int(end_day))}"
+            # Not a day range, e.g. "May 5-2025": only convert the first day
+            return result + m.group(0)[m.start(3) - m.start(0) :]
+        return result
+
+    text = MONTH_DAY_PATTERN.sub(month_day, text)
+
+    def day_month(m: re.Match[str]) -> str:
+        the, day, month = m.groups()
+        if not 1 <= int(day) <= 31:
+            return m.group(0)
+        return f"{the or 'the'} {ordinal_words(int(day))} of {month}"
+
+    return DAY_MONTH_PATTERN.sub(day_month, text)
+
+
+# Radio stations whose frequency is read digit by digit ("Kiss 108" -> "Kiss one oh eight").
+RADIO_STATIONS = load_json_data("radio_stations")
+RADIO_STATION_PATTERN = re.compile(
+    r"\b(?:"
+    + "|".join(
+        re.escape(name)
+        for name in sorted(RADIO_STATIONS, key=len, reverse=True)
+    )
+    + r")(?!\w|\.\d)",
+    re.IGNORECASE,
+)
+# Any FM frequency: "106.7 FM", "98.5FM"
+FM_FREQUENCY_PATTERN = re.compile(
+    r"\b(\d{2,3}(?:\.\d)?)\s*(FM)\b", re.IGNORECASE
+)
+
+
+def frequency_to_words(frequency: str) -> str:
+    """ "106.7" -> "one oh six point seven", "98.5" -> "ninety-eight point five"."""
+    whole, _, decimal = frequency.partition(".")
+    if len(whole) == 3:
+        words = f"{INFLECT_ENGINE.number_to_words(whole[0])} "
+        words += (
+            f"oh {INFLECT_ENGINE.number_to_words(whole[2])}"
+            if whole[1] == "0"
+            else INFLECT_ENGINE.number_to_words(whole[1:])
+        )
+    else:
+        words = INFLECT_ENGINE.number_to_words(whole)
+    if decimal:
+        words += f" point {INFLECT_ENGINE.number_to_words(decimal)}"
+    return words
+
+
+def handle_radio_stations(text: str) -> str:
+    """Read radio station frequencies the way stations say them on air."""
+    lookup = {name.lower(): spoken for name, spoken in RADIO_STATIONS.items()}
+    text = RADIO_STATION_PATTERN.sub(
+        lambda m: lookup[m.group(0).lower()], text
+    )
+
+    def fm(m: re.Match[str]) -> str:
+        if not 87.5 <= float(m.group(1)) <= 108:
+            return m.group(0)
+        return f"{frequency_to_words(m.group(1))} {m.group(2)}"
+
+    return FM_FREQUENCY_PATTERN.sub(fm, text)
+
+
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
     unit_string = u.group(6).strip()
@@ -403,21 +616,38 @@ def conditional_int(number: float, threshold: float = 0.00001):
 def translate_multiplier(multiplier: str) -> str:
     """Translate multiplier abrevations to words"""
 
-    multiplier_translation = {
-        "k": "thousand",
-        "m": "million",
-        "b": "billion",
-        "t": "trillion",
-    }
-    if multiplier.lower() in multiplier_translation:
-        return multiplier_translation[multiplier.lower()]
+    if multiplier.lower() in MULTIPLIER_TRANSLATION:
+        return MULTIPLIER_TRANSLATION[multiplier.lower()]
     return multiplier.strip()
 
 
+def number_words(number) -> str:
+    """number_to_words without the commas between groups.
+
+    inflect writes 2600 as "two thousand, six hundred", and comma pacing turns
+    that comma into an audible pause. Its comma="" option does not remove them.
+    """
+    return INFLECT_ENGINE.number_to_words(number).replace(",", "")
+
+
 def split_four_digit(number: float):
-    part1 = str(conditional_int(number))[:2]
-    part2 = str(conditional_int(number))[2:]
-    return f"{INFLECT_ENGINE.number_to_words(part1)} {INFLECT_ENGINE.number_to_words(part2)}"
+    """Read a four-digit number as a year.
+
+    1605 -> "sixteen oh five", 1900 -> "nineteen hundred",
+    2013 -> "two thousand thirteen" (not "twenty thirteen", which is easily
+    misheard as "twenty thirty"), 1984 -> "nineteen eighty-four".
+    """
+    number = int(conditional_int(number))
+    century, rest = divmod(number, 100)
+    century_words = INFLECT_ENGINE.number_to_words(century)
+    rest_words = INFLECT_ENGINE.number_to_words(rest)
+    if rest == 0:
+        return f"{century_words} hundred"
+    if 2010 <= number <= 2019:
+        return f"two thousand {rest_words}"
+    if rest < 10:
+        return f"{century_words} oh {rest_words}"
+    return f"{century_words} {rest_words}"
 
 
 def handle_numbers(n: re.Match[str]) -> str:
@@ -445,7 +675,7 @@ def handle_numbers(n: re.Match[str]) -> str:
         ):
             return split_four_digit(number)
 
-    return f"{INFLECT_ENGINE.number_to_words(number)}{multiplier}"
+    return f"{number_words(number)}{multiplier}"
 
 
 def handle_money(m: re.Match[str]) -> str:
@@ -469,11 +699,11 @@ def handle_money(m: re.Match[str]) -> str:
         multiplier = f" {multiplier}"
 
     if number % 1 == 0 or multiplier != "":
-        text_number = f"{INFLECT_ENGINE.number_to_words(conditional_int(number))}{multiplier} {INFLECT_ENGINE.plural(bill, count=number)}"
+        text_number = f"{number_words(conditional_int(number))}{multiplier} {INFLECT_ENGINE.plural(bill, count=number)}"
     else:
         sub_number = int(str(number).split(".")[-1].ljust(2, "0"))
 
-        text_number = f"{INFLECT_ENGINE.number_to_words(int(math.floor(number)))} {INFLECT_ENGINE.plural(bill, count=number)} and {INFLECT_ENGINE.number_to_words(sub_number)} {INFLECT_ENGINE.plural(coin, count=sub_number)}"
+        text_number = f"{number_words(int(math.floor(number)))} {INFLECT_ENGINE.plural(bill, count=number)} and {INFLECT_ENGINE.number_to_words(sub_number)} {INFLECT_ENGINE.plural(coin, count=sub_number)}"
 
     return text_number
 
@@ -548,23 +778,34 @@ def handle_url(u: re.Match[str]) -> str:
     return re.sub(r"\s+", " ", url).strip()
 
 
+PHONE_PATTERN = re.compile(
+    r"(?<!\d)(\+?\d{1,2})?([ .-]?)(\(?\d{3}\)?)[\s.-](\d{3})[\s.-](\d{4})(?!\d)"
+)
+
+
 def handle_phone_number(p: re.Match[str]) -> str:
+    """Read a phone number digit by digit, with "oh" for zero and a pause
+    between groups: "(617) 798-0874" -> "six one seven, seven nine eight,
+    oh eight seven four"."""
     p = list(p.groups())
 
-    country_code = ""
+    def digits(value: str) -> str:
+        return " ".join(
+            "oh" if digit == "0" else INFLECT_ENGINE.number_to_words(digit)
+            for digit in value
+        )
+
+    parts = []
     if p[0] is not None:
-        p[0] = p[0].replace("+", "")
-        country_code += INFLECT_ENGINE.number_to_words(p[0])
+        parts.append(digits(p[0].replace("+", "")))
+    parts.append(digits(p[2].replace("(", "").replace(")", "")))
+    parts.append(digits(p[3]))
+    parts.append(digits(p[4]))
 
-    area_code = INFLECT_ENGINE.number_to_words(
-        p[2].replace("(", "").replace(")", ""), group=1, comma=""
-    )
-
-    telephone_prefix = INFLECT_ENGINE.number_to_words(p[3], group=1, comma="")
-
-    line_number = INFLECT_ENGINE.number_to_words(p[4], group=1, comma="")
-
-    return ",".join([country_code, area_code, telephone_prefix, line_number])
+    # Without a country code, the optional separator group matched the
+    # character before the number (e.g. the space after "Call"), so keep it.
+    prefix = p[1] if p[0] is None else ""
+    return prefix + ", ".join(parts)
 
 
 def handle_time(t: re.Match[str]) -> str:
@@ -629,19 +870,25 @@ def normalize_text(
     if normalization_options.date_range_normalization:
         text = handle_date_ranges(text)
 
+    if normalization_options.date_ordinal_normalization:
+        text = handle_date_ordinals(text)
+
+    if normalization_options.radio_station_normalization:
+        text = handle_radio_stations(text)
+
+    # Replace phone numbers before scores, which would otherwise turn
+    # "798-0874" into a score
+    if normalization_options.phone_normalization:
+        text = PHONE_PATTERN.sub(handle_phone_number, text)
+
     if normalization_options.score_normalization:
         text = handle_scores(text)
 
     if normalization_options.number_abbreviation_normalization:
         text = handle_number_abbreviations(text)
 
-    # Replace phone numbers:
-    if normalization_options.phone_normalization:
-        text = re.sub(
-            r"(\+?\d{1,2})?([ .-]?)(\(?\d{3}\)?)[\s.-](\d{3})[\s.-](\d{4})",
-            handle_phone_number,
-            text,
-        )
+    # Expand common abbreviations
+    text = handle_common_abbreviations(text)
 
     # Replace quotes and brackets (additional cleanup)
     text = text.replace(chr(8216), "'").replace(chr(8217), "'")
@@ -710,6 +957,10 @@ def normalize_text(
         text,
     )
     text = re.sub(r"(?i)(?<=[A-Z])\.(?=[A-Z])", "-", text)
+
+    text = handle_hyphenated_compounds(text)
+
+    text = handle_acronyms(text)
 
     text = re.sub(r"\s{2,}", " ", text)
 
