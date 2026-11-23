@@ -418,7 +418,7 @@ def test_number():
             "There are 1300 products left in stock",
             normalization_options=NormalizationOptions(),
         )
-        == "There are one thousand;- three hundred products left in stock"
+        == "There are one thousand three hundred products left in stock"
     )
 
     assert (
@@ -426,7 +426,7 @@ def test_number():
             "The population is 7,890,000 people.",
             normalization_options=NormalizationOptions(),
         )
-        == "The population is seven million;- eight hundred and ninety thousand people."
+        == "The population is seven million eight hundred and ninety thousand people."
     )
 
     assert (
@@ -579,3 +579,97 @@ def test_handle_pronunciations_keeps_possessive_attached(text, expected):
 )
 def test_normalize_text_single_letter_suffixes(text, expected):
     assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("built in 1605", "built in sixteen oh five"),
+        ("passed in 2013", "passed in two thousand thirteen"),
+        ("by 1900", "by nineteen hundred"),
+        ("in 1984", "in nineteen eighty-four"),
+        ("in 2025", "in twenty twenty-five"),
+    ],
+)
+def test_years(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "It costs $2,600 a month.",
+            "It costs two thousand six hundred dollars a month.",
+        ),
+        (
+            "It costs $1,250,000.",
+            "It costs one million two hundred and fifty thousand dollars.",
+        ),
+    ],
+)
+def test_large_numbers_have_no_pause(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "Tune in to Kiss 108 tonight.",
+            "Tune in to Kiss one oh eight tonight.",
+        ),
+        ("Listen to Magic 106.7.", "Listen to Magic one oh six point seven."),
+        ("Try 101.7 FM.", "Try one oh one point seven [FM](/ˌɛfˈɛm/)."),
+        ("Try 98.5 FM.", "Try ninety-eight point five [FM](/ˌɛfˈɛm/)."),
+        ("Room 108 is free.", "Room one hundred and eight is free."),
+    ],
+)
+def test_radio_stations(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (
+            "Call (617) 798-0874 now.",
+            "Call six one seven;- seven nine eight;- oh eight seven four now.",
+        ),
+        (
+            "Call 617-798-0874.",
+            "Call six one seven;- seven nine eight;- oh eight seven four.",
+        ),
+        (
+            "Call +1 617 798 0874.",
+            "Call one;- six one seven;- seven nine eight;- oh eight seven four.",
+        ),
+    ],
+)
+def test_phone_numbers(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("The vote is on November 5.", "The vote is on November fifth."),
+        (
+            "Nov. 1 and March 22, 2025",
+            "November first and March twenty-second;- twenty twenty-five",
+        ),
+        ("Jan. 23-25", "January twenty-third to twenty-fifth"),
+        ("the 5th of November", "the fifth of November"),
+        ("On 3 May we met.", "On the third of May we met."),
+        ("In May 2025 it rained.", "In May twenty twenty-five it rained."),
+        ("May 5:30 pm", "May five thirty pm"),
+        ("March 3 to 40 people", "March third to forty people"),
+    ],
+)
+def test_date_ordinals(text, expected):
+    assert normalize_text(text, NormalizationOptions()) == expected
+
+
+def test_date_ordinals_can_be_disabled():
+    options = NormalizationOptions(date_ordinal_normalization=False)
+    assert normalize_text("November 5", options) == "November five"

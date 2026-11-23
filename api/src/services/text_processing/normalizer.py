@@ -456,6 +456,106 @@ def handle_number_abbreviations(text):
     )
 
 
+MONTH_NAMES = "January|February|March|April|May|June|July|August|September|October|November|December"
+ORDINAL_SUFFIX = r"(?:st|nd|rd|th)?"
+# A day number that is not part of a time, decimal or percentage.
+DAY = rf"(\d{{1,2}}){ORDINAL_SUFFIX}\b(?![:.]\d|%)"
+
+# "November 5", "November 5th", "November 5 to 7", "March 3-4"
+MONTH_DAY_PATTERN = re.compile(
+    rf"\b({MONTH_NAMES})\s+{DAY}(?:(\s*(?:-|–|to|through|and)\s*){DAY})?"
+)
+# "5 November", "the 5th of November"
+DAY_MONTH_PATTERN = re.compile(
+    rf"\b(?:([Tt]he)\s+)?{DAY}\s+(?:of\s+)?({MONTH_NAMES})\b"
+)
+
+
+def ordinal_words(day: int) -> str:
+    return INFLECT_ENGINE.number_to_words(INFLECT_ENGINE.ordinal(day))
+
+
+def handle_date_ordinals(text: str) -> str:
+    """Read the day in a date as an ordinal.
+
+    "November 5" -> "November fifth", "March 3-4" -> "March third to fourth",
+    "5 November" -> "the fifth of November".
+    """
+
+    def month_day(m: re.Match[str]) -> str:
+        month, day, joiner, end_day = m.groups()
+        if not 1 <= int(day) <= 31:
+            return m.group(0)
+        result = f"{month} {ordinal_words(int(day))}"
+        if end_day:
+            if 1 <= int(end_day) <= 31:
+                joiner = joiner.strip()
+                joiner = "to" if joiner in ("-", "–") else joiner
+                return f"{result} {joiner} {ordinal_words(int(end_day))}"
+            # Not a day range, e.g. "May 5-2025": only convert the first day
+            return result + m.group(0)[m.start(3) - m.start(0) :]
+        return result
+
+    text = MONTH_DAY_PATTERN.sub(month_day, text)
+
+    def day_month(m: re.Match[str]) -> str:
+        the, day, month = m.groups()
+        if not 1 <= int(day) <= 31:
+            return m.group(0)
+        return f"{the or 'the'} {ordinal_words(int(day))} of {month}"
+
+    return DAY_MONTH_PATTERN.sub(day_month, text)
+
+
+# Radio stations whose frequency is read digit by digit ("Kiss 108" -> "Kiss one oh eight").
+RADIO_STATIONS = load_json_data("radio_stations")
+RADIO_STATION_PATTERN = re.compile(
+    r"\b(?:"
+    + "|".join(
+        re.escape(name)
+        for name in sorted(RADIO_STATIONS, key=len, reverse=True)
+    )
+    + r")(?!\w|\.\d)",
+    re.IGNORECASE,
+)
+# Any FM frequency: "106.7 FM", "98.5FM"
+FM_FREQUENCY_PATTERN = re.compile(
+    r"\b(\d{2,3}(?:\.\d)?)\s*(FM)\b", re.IGNORECASE
+)
+
+
+def frequency_to_words(frequency: str) -> str:
+    """ "106.7" -> "one oh six point seven", "98.5" -> "ninety-eight point five"."""
+    whole, _, decimal = frequency.partition(".")
+    if len(whole) == 3:
+        words = f"{INFLECT_ENGINE.number_to_words(whole[0])} "
+        words += (
+            f"oh {INFLECT_ENGINE.number_to_words(whole[2])}"
+            if whole[1] == "0"
+            else INFLECT_ENGINE.number_to_words(whole[1:])
+        )
+    else:
+        words = INFLECT_ENGINE.number_to_words(whole)
+    if decimal:
+        words += f" point {INFLECT_ENGINE.number_to_words(decimal)}"
+    return words
+
+
+def handle_radio_stations(text: str) -> str:
+    """Read radio station frequencies the way stations say them on air."""
+    lookup = {name.lower(): spoken for name, spoken in RADIO_STATIONS.items()}
+    text = RADIO_STATION_PATTERN.sub(
+        lambda m: lookup[m.group(0).lower()], text
+    )
+
+    def fm(m: re.Match[str]) -> str:
+        if not 87.5 <= float(m.group(1)) <= 108:
+            return m.group(0)
+        return f"{frequency_to_words(m.group(1))} {m.group(2)}"
+
+    return FM_FREQUENCY_PATTERN.sub(fm, text)
+
+
 def handle_units(u: re.Match[str]) -> str:
     """Converts units to their full form"""
     unit_string = u.group(6).strip()
@@ -489,10 +589,33 @@ def translate_multiplier(multiplier: str) -> str:
     return multiplier.strip()
 
 
+def number_words(number) -> str:
+    """number_to_words without the commas between groups.
+
+    inflect writes 2600 as "two thousand, six hundred", and comma pacing turns
+    that comma into an audible pause. Its comma="" option does not remove them.
+    """
+    return INFLECT_ENGINE.number_to_words(number).replace(",", "")
+
+
 def split_four_digit(number: float):
-    part1 = str(conditional_int(number))[:2]
-    part2 = str(conditional_int(number))[2:]
-    return f"{INFLECT_ENGINE.number_to_words(part1)} {INFLECT_ENGINE.number_to_words(part2)}"
+    """Read a four-digit number as a year.
+
+    1605 -> "sixteen oh five", 1900 -> "nineteen hundred",
+    2013 -> "two thousand thirteen" (not "twenty thirteen", which is easily
+    misheard as "twenty thirty"), 1984 -> "nineteen eighty-four".
+    """
+    number = int(conditional_int(number))
+    century, rest = divmod(number, 100)
+    century_words = INFLECT_ENGINE.number_to_words(century)
+    rest_words = INFLECT_ENGINE.number_to_words(rest)
+    if rest == 0:
+        return f"{century_words} hundred"
+    if 2010 <= number <= 2019:
+        return f"two thousand {rest_words}"
+    if rest < 10:
+        return f"{century_words} oh {rest_words}"
+    return f"{century_words} {rest_words}"
 
 
 def handle_numbers(n: re.Match[str]) -> str:
@@ -520,7 +643,7 @@ def handle_numbers(n: re.Match[str]) -> str:
         ):
             return split_four_digit(number)
 
-    return f"{INFLECT_ENGINE.number_to_words(number)}{multiplier}"
+    return f"{number_words(number)}{multiplier}"
 
 
 def handle_money(m: re.Match[str]) -> str:
@@ -544,11 +667,11 @@ def handle_money(m: re.Match[str]) -> str:
         multiplier = f" {multiplier}"
 
     if number % 1 == 0 or multiplier != "":
-        text_number = f"{INFLECT_ENGINE.number_to_words(conditional_int(number))}{multiplier} {INFLECT_ENGINE.plural(bill, count=number)}"
+        text_number = f"{number_words(conditional_int(number))}{multiplier} {INFLECT_ENGINE.plural(bill, count=number)}"
     else:
         sub_number = int(str(number).split(".")[-1].ljust(2, "0"))
 
-        text_number = f"{INFLECT_ENGINE.number_to_words(int(math.floor(number)))} {INFLECT_ENGINE.plural(bill, count=number)} and {INFLECT_ENGINE.number_to_words(sub_number)} {INFLECT_ENGINE.plural(coin, count=sub_number)}"
+        text_number = f"{number_words(int(math.floor(number)))} {INFLECT_ENGINE.plural(bill, count=number)} and {INFLECT_ENGINE.number_to_words(sub_number)} {INFLECT_ENGINE.plural(coin, count=sub_number)}"
 
     return text_number
 
@@ -623,23 +746,34 @@ def handle_url(u: re.Match[str]) -> str:
     return re.sub(r"\s+", " ", url).strip()
 
 
+PHONE_PATTERN = re.compile(
+    r"(?<!\d)(\+?\d{1,2})?([ .-]?)(\(?\d{3}\)?)[\s.-](\d{3})[\s.-](\d{4})(?!\d)"
+)
+
+
 def handle_phone_number(p: re.Match[str]) -> str:
+    """Read a phone number digit by digit, with "oh" for zero and a pause
+    between groups: "(617) 798-0874" -> "six one seven, seven nine eight,
+    oh eight seven four"."""
     p = list(p.groups())
 
-    country_code = ""
+    def digits(value: str) -> str:
+        return " ".join(
+            "oh" if digit == "0" else INFLECT_ENGINE.number_to_words(digit)
+            for digit in value
+        )
+
+    parts = []
     if p[0] is not None:
-        p[0] = p[0].replace("+", "")
-        country_code += INFLECT_ENGINE.number_to_words(p[0])
+        parts.append(digits(p[0].replace("+", "")))
+    parts.append(digits(p[2].replace("(", "").replace(")", "")))
+    parts.append(digits(p[3]))
+    parts.append(digits(p[4]))
 
-    area_code = INFLECT_ENGINE.number_to_words(
-        p[2].replace("(", "").replace(")", ""), group=1, comma=""
-    )
-
-    telephone_prefix = INFLECT_ENGINE.number_to_words(p[3], group=1, comma="")
-
-    line_number = INFLECT_ENGINE.number_to_words(p[4], group=1, comma="")
-
-    return ",".join([country_code, area_code, telephone_prefix, line_number])
+    # Without a country code, the optional separator group matched the
+    # character before the number (e.g. the space after "Call"), so keep it.
+    prefix = p[1] if p[0] is None else ""
+    return prefix + ", ".join(parts)
 
 
 def handle_time(t: re.Match[str]) -> str:
@@ -704,19 +838,22 @@ def normalize_text(
     if normalization_options.date_range_normalization:
         text = handle_date_ranges(text)
 
+    if normalization_options.date_ordinal_normalization:
+        text = handle_date_ordinals(text)
+
+    if normalization_options.radio_station_normalization:
+        text = handle_radio_stations(text)
+
+    # Replace phone numbers before scores, which would otherwise turn
+    # "798-0874" into a score
+    if normalization_options.phone_normalization:
+        text = PHONE_PATTERN.sub(handle_phone_number, text)
+
     if normalization_options.score_normalization:
         text = handle_scores(text)
 
     if normalization_options.number_abbreviation_normalization:
         text = handle_number_abbreviations(text)
-
-    # Replace phone numbers:
-    if normalization_options.phone_normalization:
-        text = re.sub(
-            r"(\+?\d{1,2})?([ .-]?)(\(?\d{3}\)?)[\s.-](\d{3})[\s.-](\d{4})",
-            handle_phone_number,
-            text,
-        )
 
     # Expand common abbreviations
     text = handle_common_abbreviations(text)
