@@ -1,0 +1,14 @@
+{
+    "$": [
+        "dollar",
+        "cent"
+    ],
+    "£": [
+        "pound",
+        "pence"
+    ],
+    "€": [
+        "euro",
+        "cent"
+    ]
+}

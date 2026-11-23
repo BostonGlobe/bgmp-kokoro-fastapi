@@ -4,9 +4,11 @@ Handles various text formats including URLs, emails, numbers, money, and special
 Converts them into a format suitable for text-to-speech processing.
 """
 
+import json
 import math
 import re
 from functools import lru_cache
+from pathlib import Path
 from typing import List, Optional, Union
 
 import inflect
@@ -16,6 +18,15 @@ from numpy import number
 from torch import mul
 
 from ...structures.schemas import NormalizationOptions
+
+DATA_DIR = Path(__file__).parent / "data"
+
+
+def load_json_data(name: str) -> dict:
+    """Load a lookup table from data/<name>.json, preserving key order."""
+    with open(DATA_DIR / f"{name}.json", encoding="utf-8") as file:
+        return json.load(file)
+
 
 # Constants
 VALID_TLDS = [
@@ -61,156 +72,23 @@ VALID_TLDS = [
     "co",
 ]
 
-VALID_UNITS = {
-    "m": "meter",
-    "cm": "centimeter",
-    "mm": "millimeter",
-    "km": "kilometer",
-    "in": "inch",
-    "ft": "foot",
-    "yd": "yard",
-    "mi": "mile",  # Length
-    "g": "gram",
-    "kg": "kilogram",
-    "mg": "milligram",  # Mass
-    "s": "second",
-    "ms": "millisecond",
-    "min": "minutes",
-    "h": "hour",  # Time
-    "l": "liter",
-    "ml": "mililiter",
-    "cl": "centiliter",
-    "dl": "deciliter",  # Volume
-    "kph": "kilometer per hour",
-    "mph": "mile per hour",
-    "mi/h": "mile per hour",
-    "m/s": "meter per second",
-    "km/h": "kilometer per hour",
-    "mm/s": "milimeter per second",
-    "cm/s": "centimeter per second",
-    "ft/s": "feet per second",
-    "cm/h": "centimeter per day",  # Speed
-    "°c": "degree celsius",
-    "c": "degree celsius",
-    "°f": "degree fahrenheit",
-    "f": "degree fahrenheit",
-    "k": "kelvin",  # Temperature
-    "pa": "pascal",
-    "kpa": "kilopascal",
-    "mpa": "megapascal",
-    "atm": "atmosphere",  # Pressure
-    "hz": "hertz",
-    "khz": "kilohertz",
-    "mhz": "megahertz",
-    "ghz": "gigahertz",  # Frequency
-    "v": "volt",
-    "kv": "kilovolt",
-    "mv": "mergavolt",  # Voltage
-    "a": "amp",
-    "ma": "megaamp",
-    "ka": "kiloamp",  # Current
-    "w": "watt",
-    "kw": "kilowatt",
-    "mw": "megawatt",  # Power
-    "j": "joule",
-    "kj": "kilojoule",
-    "mj": "megajoule",  # Energy
-    "Ω": "ohm",
-    "kΩ": "kiloohm",
-    "mΩ": "megaohm",  # Resistance (Ohm)
-    "f": "farad",
-    "µf": "microfarad",
-    "nf": "nanofarad",
-    "pf": "picofarad",  # Capacitance
-    "b": "bit",
-    "kb": "kilobit",
-    "mb": "megabit",
-    "gb": "gigabit",
-    "tb": "terabit",
-    "pb": "petabit",  # Data size
-    "kbps": "kilobit per second",
-    "mbps": "megabit per second",
-    "gbps": "gigabit per second",
-    "tbps": "terabit per second",
-    "px": "pixel",  # CSS units
-}
+VALID_UNITS = load_json_data("valid_units")
 
-SYMBOL_REPLACEMENTS = {
-    "~": " ",
-    "@": " at ",
-    "#": " number ",
-    "$": " dollar ",
-    "%": " percent ",
-    "^": " ",
-    "&": " and ",
-    "*": " ",
-    "_": " ",
-    "|": " ",
-    "\\": " ",
-    "/": " slash ",
-    "=": " equals ",
-    "+": " plus ",
-}
+SYMBOL_REPLACEMENTS = load_json_data("symbol_replacements")
 
 MONEY_UNITS = {
-    "$": ("dollar", "cent"),
-    "£": ("pound", "pence"),
-    "€": ("euro", "cent"),
+    symbol: tuple(names)
+    for symbol, names in load_json_data("money_units").items()
 }
 
-COMMON_ABBREVIATIONS = {
-    "Maj.": "Major",
-    "Lt.": "Lieutenant",
-    "Capt.": "Captain",
-    "Col.": "Colonel",
-    "Gen.": "General",
-    "Brig.": "Brigadier",
-    "Cmdr.": "Commander",
-    "Adm.": "Admiral",
-    "Pvt.": "Private",
-    "Sgt.": "Sergeant",
-    "Ltd.": "Limited",
-    "Inc.": "Incorporated",
-    "Acct.": "Account",
-    "Dept.": "Department",
-    "Dist.": "District",
-    "Dr.": "Doctor",
-    "etc.": "et cetera",
-    "Gov.": "Government",
-    "Info.": "Information",
-    "Jr.": "Junior",
-    "Sr.": "Senior",
-    "Mgr.": "Manager",
-    "Msg.": "Message",
-    "Notif.": "Notification",
-    "Org.": "Organization",
-    "Qty.": "Quantity",
-}
+COMMON_ABBREVIATIONS = load_json_data("common_abbreviations")
+
+MONTH_ABBREVIATIONS = load_json_data("month_abbreviations")
+
+MULTIPLIER_TRANSLATION = load_json_data("multiplier_translation")
 
 # Acronyms pronounced as words; keys are preserved without letter spacing.
-SPOKEN_ACRONYMS = {
-    "NASA": "NASS-uh",
-    "NATO": "NAY-toh",
-    "UNESCO": "yoo-NESS-koh",
-    "UNICEF": "YOO-nih-sef",
-    "OPEC": "OH-pek",
-    "FEMA": "FEE-muh",
-    "NOAA": "NOH-uh",
-    "OSHA": "OH-shuh",
-    "DARPA": "DAR-puh",
-    "SCUBA": "SKOO-buh",
-    "RADAR": "RAY-dar",
-    "SONAR": "SOH-nar",
-    "LASER": "LAY-zer",
-    "LIDAR": "LYE-dar",
-    "RAM": "ram",
-    "ROM": "rom",
-    "PIN": "pin",
-    "CAPTCHA": "KAP-chuh",
-    "GIF": "gif or jif",
-    "SWAT": "swot",
-    "NVIDIA": "en-VID-ee-uh",
-}
+SPOKEN_ACRONYMS = load_json_data("spoken_acronyms")
 
 # Pre-compiled regex patterns for performance
 EMAIL_PATTERN = re.compile(
@@ -246,28 +124,9 @@ NUMBER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-DEFAULT_PRONUNCIATION_DICTIONARY = {
-    "Agawam": "/'æɡəwɒm/",
-    "Attleboro": "/'ætəlbɹə/",
-    "Attleborough": "/'ætəlbɹə/",
-    "Ayer": "/ˈɛɹ/",
-    "Billerica": "/bɪl'ɹɪkə/",
-    "Cohasset": "/koʊ'hæs ɪt/",
-    "Lenox": "/'lɛnɪks/",
-    "Leominster": "/'lɛm ən stər/",
-    "Nahant": "/nə'hɑnt/",
-    "Natick": "/'neɪtɪk/",
-    "Petersham": "/'piːtərsæm/",
-    "Rehoboth": "/rɪ'hoʊ bəθ/",
-    "Rowley": "/'ɹæuli/",
-    "Scituate": "/'sɪtʃ u ət/",
-    "Stoughton": "/'stoʊtən/",
-    "Tyringham": "/t'aɪərɪŋəm/",
-    "Whately": "/'hweɪtli/",
-    "Celtics": "/s'ɛltɪks/",
-    "NVIDIA": "/ɛnvˈɪdiə/",
-    "Nvidia": "/ɛnvˈɪdiə/",
-}
+DEFAULT_PRONUNCIATION_DICTIONARY = load_json_data(
+    "default_pronunciation_dictionary"
+)
 
 INFLECT_ENGINE = inflect.engine()
 
@@ -388,34 +247,7 @@ def handle_common_abbreviations(
 
 
 # Letter names in Kokoro/misaki phoneme notation (from misaki's us_gold lexicon).
-LETTER_PHONEMES = {
-    "A": "ˈA",
-    "B": "bˈi",
-    "C": "sˈi",
-    "D": "dˈi",
-    "E": "ˈi",
-    "F": "ˈɛf",
-    "G": "ʤˈi",
-    "H": "ˈAʧ",
-    "I": "ˈI",
-    "J": "ʤˈA",
-    "K": "kˈA",
-    "L": "ˈɛl",
-    "M": "ˈɛm",
-    "N": "ˈɛn",
-    "O": "ˈO",
-    "P": "pˈi",
-    "Q": "kjˈu",
-    "R": "ˈɑɹ",
-    "S": "ˈɛs",
-    "T": "tˈi",
-    "U": "jˈu",
-    "V": "vˈi",
-    "W": "dˈʌbᵊlju",
-    "X": "ˈɛks",
-    "Y": "wˈI",
-    "Z": "zˈi",
-}
+LETTER_PHONEMES = load_json_data("letter_phonemes")
 
 # An uppercase run, optionally followed by a plural or possessive suffix.
 # "'S" (uppercase) comes from the consonant-plural rewrite earlier in normalize_text.
@@ -424,7 +256,7 @@ ACRONYM_PATTERN = re.compile(r"\b([A-Z]{2,})('[sS]|s)?\b")
 # Roman numerals built from I, V, X, L only. C, D and M are left out so that
 # real acronyms like CD, DC, MD and MC are still spelled.
 ROMAN_NUMERAL_PATTERN = re.compile(r"^(?:L?X{0,3})(?:IX|IV|V?I{0,3})$")
-ROMAN_VALUES = {"I": 1, "V": 5, "X": 10, "L": 50}
+ROMAN_VALUES = load_json_data("roman_values")
 
 # Words after which a Roman numeral is read as a cardinal ("World War two").
 # After any other capitalised word it is read as a regnal ordinal ("Henry the eighth").
@@ -566,21 +398,7 @@ def handle_slashes(text):
 def handle_month_abbreviations(text):
     # Normalize dates in the text
     # Example: Convert "Jan. 23, 2025" to "January 23, 2025"
-    month_abbreviations = {
-        "Jan.": "January",
-        "Feb.": "February",
-        "Mar.": "March",
-        "Apr.": "April",
-        "May.": "May",
-        "Jun.": "June",
-        "Jul.": "July",
-        "Aug.": "August",
-        "Sep.": "September",
-        "Oct.": "October",
-        "Nov.": "November",
-        "Dec.": "December",
-    }
-    for abbr, full in month_abbreviations.items():
+    for abbr, full in MONTH_ABBREVIATIONS.items():
         text = text.replace(abbr, full)
     return text
 
@@ -652,14 +470,8 @@ def conditional_int(number: float, threshold: float = 0.00001):
 def translate_multiplier(multiplier: str) -> str:
     """Translate multiplier abrevations to words"""
 
-    multiplier_translation = {
-        "k": "thousand",
-        "m": "million",
-        "b": "billion",
-        "t": "trillion",
-    }
-    if multiplier.lower() in multiplier_translation:
-        return multiplier_translation[multiplier.lower()]
+    if multiplier.lower() in MULTIPLIER_TRANSLATION:
+        return MULTIPLIER_TRANSLATION[multiplier.lower()]
     return multiplier.strip()
 
 
